@@ -5,7 +5,7 @@ import { Providers } from "@/components/Providers";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 
 export const metadata: Metadata = {
-  title: "dev.apply – effortless resume & portfolio for developers",
+  title: "dev-apply – effortless resume & portfolio for developers",
   description:
     "Generate an ATS-friendly resume and minimalist portfolio from your GitHub in seconds, then let automation help you apply to jobs.",
 };

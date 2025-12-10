@@ -13,7 +13,7 @@ export function SiteHeader() {
         <Link href="/" className="flex items-center gap-2">
           <div className="h-7 w-7 rounded-lg bg-sky-500" />
           <span className="text-sm font-semibold tracking-tight">
-            dev.apply
+            dev-apply
           </span>
         </Link>
 
