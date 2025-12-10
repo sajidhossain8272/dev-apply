@@ -1,36 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# dev-apply
 
-## Getting Started
+dev-apply is a developer-focused project that explores what a modern, automated job-hunting workflow could look like when it is built directly on top of the tools developers already use: GitHub, Next.js, and a simple, transparent backend.
 
-First, run the development server:
+Rather than being a closed, black-box job platform, dev-apply is designed as an open, understandable codebase that any programmer can read, run, and extend.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## What dev-apply is
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+dev-apply is:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- A **GitHub-first identity layer**  
+  You sign in with GitHub, and that account becomes the single source of truth for your developer profile inside this system.
 
-## Learn More
+- A **structured profile and resume model**  
+  Instead of a single PDF blob, your information is modeled as structured data:
+  - User (identity, handle)
+  - Profile (headline, bio, location, role, company, social links)
+  - Experience entries
+  - Project entries
+  - Skills
+  - Availability / “open to work” settings
 
-To learn more about Next.js, take a look at the following resources:
+- A **one-page public portfolio site per developer**  
+  Every user can publish a simple, fast, SEO-friendly portfolio at a stable URL like:
+  - `/u/[handle]` (e.g. `/u/sajidhossain`)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+  The page focuses on clarity and readability:
+  - Name, headline, and availability at the top.
+  - About section from your bio.
+  - Experience and projects in a clean, scrollable layout.
+  - Skills as compact tags.
+  - Links to GitHub, LinkedIn, personal site, and Twitter/X.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- A **foundation for automation and AI**  
+  The current version is an MVP, but the data model and architecture are chosen so that later it can:
+  - Pull signals from GitHub (repos, activity) to enrich your profile.
+  - Match your skills and history against job and project descriptions.
+  - Generate tailored cover letters and application emails.
+  - Respect your status (for example “actively looking” vs “booked on a project”) when suggesting new opportunities.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Why dev-apply exists
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The idea behind dev-apply is that developers:
+
+- Already maintain most of their “professional identity” in GitHub, code, and side projects.
+- Should not have to repeatedly rewrite the same experience and skills in dozens of different ATS forms.
+- Should be able to own and export their own profile data easily.
+- Should have a public portfolio that is:
+  - Minimal
+  - Fast
+  - Easy to keep in sync with what they are actually doing.
+
+dev-apply tries to bring these pieces together in a small, comprehensible codebase that can be:
+
+- Used as-is by individual developers.
+- Forked and customized as a personal or team tool.
+- Extended into a more complete AI-assisted job-hunting product.
+
+---
+
+## What dev-apply is not (yet)
+
+At this MVP stage, dev-apply is not:
+
+- A full job board or marketplace.
+- A complete ATS replacement.
+- A polished end-user SaaS.
+
+Instead, it is intentionally kept small and direct:
+
+- A clear data model for a developer’s professional profile.
+- A GitHub-based sign-in flow.
+- A private dashboard to manage that profile.
+- A public portfolio route that turns that data into a single, shareable page.
+
+This scope makes the project easier to understand, easier to extend, and a practical base for experimentation with automation, AI, and integrations in future iterations.
+
+---
+
+## Summary
+
+dev-apply is a minimal, code-first approach to developer profiles and portfolios:
+
+- GitHub sign-in.
+- Structured profile and resume data.
+- One-page public portfolio per handle.
+- A foundation for automated, personalized job applications.
+
+It is built for programmers who want both a working tool and a codebase they can learn from and modify.
