@@ -336,7 +336,7 @@ export default function DashboardPage() {
           />
         </label>
         <label className="flex flex-col gap-1 text-xs">
-          Short bio (max ~500 chars)
+          Short bio (max ~1000 chars)
           <textarea
             className="min-h-[80px] rounded-md border border-slate-700 bg-bg px-2 py-1 text-xs outline-none focus:border-sky-500"
             value={profile.bio ?? ""}

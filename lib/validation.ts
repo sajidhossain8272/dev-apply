@@ -1,4 +1,5 @@
 import { z } from "zod";
+const UrlField = z.string().url().or(z.literal("")).optional();
 
 export const ExperienceInputSchema = z.object({
   id: z.string().optional(),
@@ -34,16 +35,16 @@ export const ProfileInputSchema = z.object({
     .max(40)
     .regex(/^[a-z0-9-]+$/i, "Only letters, numbers and dashes allowed"),
   headline: z.string().optional(),
-  bio: z.string().max(500).optional(),
+  bio: z.string().max(1000).optional(),
   location: z.string().optional(),
   currentCompany: z.string().optional(),
   currentRole: z.string().optional(),
   availability: z.enum(["OPEN", "BUSY", "NOT_LOOKING"]),
-  links: z.object({
-    github: z.string().url().optional(),
-    linkedin: z.string().url().optional(),
-    website: z.string().url().optional(),
-    twitter: z.string().url().optional(),
+ links: z.object({
+    github:   UrlField,
+    linkedin: UrlField,
+    website:  UrlField,
+    twitter:  UrlField,
   }),
   experiences: z.array(ExperienceInputSchema),
   projects: z.array(ProjectInputSchema),
