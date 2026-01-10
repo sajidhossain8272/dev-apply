@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
                     include: {
                         profile: {
                             include: {
-                                _count: { select: { snapshots: true, projects: true, experiences: true } }
+                                _count: { select: { snapshots: true, projects: true, experiences: true } as any }
                             }
                         }
                     },
@@ -59,19 +59,19 @@ export async function POST(req: NextRequest) {
                 return NextResponse.json({ response: "SUCCESS: COMMIT LOGGED. SNAPSHOT CREATED." });
 
             case "snapshots":
-                const snaps = await ProfileService.getSnapshots(session.user.id);
-                const snapList = snaps.map(s => `[${s.id.slice(-6)}] ${s.createdAt.toLocaleString()} - ${s.summary}`).join("\n");
+                const snaps = await ProfileService.getSnapshots(session.user.id) as any[];
+                const snapList = snaps.map((s: any) => `[${s.id.slice(-6)}] ${s.createdAt.toLocaleString()} - ${s.summary}`).join("\n");
                 return NextResponse.json({ response: `LATEST SNAPSHOTS:\n${snapList || "NO HISTORICAL DATA FOUND."}` });
 
             case "rollback":
                 const snapIdShort = parts[1];
                 if (!snapIdShort) return NextResponse.json({ response: "ERROR: SNAPSHOT ID REQUIRED." });
 
-                const allSnaps = await prisma.profileSnapshot.findMany({
+                const allSnaps = await (prisma as any).profileSnapshot.findMany({
                     where: { profile: { userId: session.user.id } }
                 });
 
-                const targetSnap = allSnaps.find(s => s.id.endsWith(snapIdShort) || s.id === snapIdShort);
+                const targetSnap = (allSnaps as any[]).find((s: any) => s.id.endsWith(snapIdShort) || s.id === snapIdShort);
                 if (!targetSnap) return NextResponse.json({ response: "ERROR: INVALID SNAPSHOT REFERENCE." });
 
                 await ProfileService.rollback(session.user.id, targetSnap.id);
