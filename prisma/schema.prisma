@@ -131,6 +131,7 @@ model UserSettings {
   // GitHub Sync Settings
   autoGithubSync   Boolean            @default(true)
   syncFrequency    String             @default("daily") // daily, weekly, manual
+  theme            String             @default("dark")
 }
 
 model Account {

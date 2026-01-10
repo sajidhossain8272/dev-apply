@@ -11,12 +11,34 @@
   color-scheme: dark;
   --bg-color: #000000;
   --text-color: #ffffff;
+  --scrollbar-thumb: #1a1a1a;
+  --selection-bg: #ffffff;
+  --selection-text: #000000;
+
+  /* Semantic Tokens */
+  --fg: #ffffff;
+  --bg: #000000;
+  --muted: #525252;
+  --border: #1a1a1a;
+  --surface: #0a0a0a;
+  --accent: #ffffff;
 }
 
 [data-theme="light"] {
   color-scheme: light;
   --bg-color: #ffffff;
   --text-color: #000000;
+  --scrollbar-thumb: #e5e5e5;
+  --selection-bg: #000000;
+  --selection-text: #ffffff;
+
+  /* Semantic Tokens */
+  --fg: #000000;
+  --bg: #ffffff;
+  --muted: #a3a3a3;
+  --border: #e5e5e5;
+  --surface: #f5f5f5;
+  --accent: #000000;
 }
 
 /* Page base */
@@ -33,7 +55,12 @@ body {
 }
 
 /* Typography */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   @apply font-semibold tracking-tight;
 }
 
@@ -64,21 +91,12 @@ a:hover {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1a1a1a;
+  background: var(--scrollbar-thumb);
   border-radius: 4px;
-}
-
-[data-theme="light"] ::webkit-scrollbar-thumb {
-  background: #e5e5e5;
 }
 
 /* Optional: selection styling */
 ::selection {
-  background: #ffffff;
-  color: #000000;
-}
-
-[data-theme="light"] ::selection {
-  background: #000000;
-  color: #ffffff;
+  background: var(--selection-bg);
+  color: var(--selection-text);
 }

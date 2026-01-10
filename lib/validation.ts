@@ -16,7 +16,7 @@ export const ProjectInputSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1),
   description: z.string().optional(),
-  url: z.string().url().optional(),
+  url: z.string().url().or(z.literal("")).optional(),
   highlight: z.boolean().optional(),
   techStack: z.string().optional(),
 });
@@ -40,11 +40,12 @@ export const ProfileInputSchema = z.object({
   currentCompany: z.string().optional(),
   currentRole: z.string().optional(),
   availability: z.enum(["OPEN", "BUSY", "NOT_LOOKING"]),
- links: z.object({
-    github:   UrlField,
+  theme: z.enum(["dark", "light"]),
+  links: z.object({
+    github: UrlField,
     linkedin: UrlField,
-    website:  UrlField,
-    twitter:  UrlField,
+    website: UrlField,
+    twitter: UrlField,
   }),
   experiences: z.array(ExperienceInputSchema),
   projects: z.array(ProjectInputSchema),

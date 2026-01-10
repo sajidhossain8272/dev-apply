@@ -185,10 +185,12 @@ export async function POST(request: Request) {
         upsert: {
           create: {
             availability: data.availability,
-          },
+            theme: data.theme,
+          } as any,
           update: {
             availability: data.availability,
-          },
+            theme: data.theme,
+          } as any,
         },
       },
     },

@@ -35,6 +35,7 @@ export type ProfileInput = {
   currentCompany?: string;
   currentRole?: string;
   availability: AvailabilityStatus;
+  theme: "dark" | "light";
   links: {
     github?: string;
     linkedin?: string;

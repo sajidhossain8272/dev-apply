@@ -21,6 +21,7 @@ const emptyProfile: ProfileInput = {
   currentCompany: "",
   currentRole: "",
   availability: "OPEN",
+  theme: "dark",
   links: {
     github: "",
     linkedin: "",
@@ -69,6 +70,7 @@ export default function DashboardPage() {
         currentCompany: p?.currentCompany ?? "",
         currentRole: p?.currentRole ?? "",
         availability: user.settings?.availability ?? "OPEN",
+        theme: user.settings?.theme ?? "dark",
         links: {
           github: p?.githubUrl ?? "",
           linkedin: p?.linkedinUrl ?? "",
@@ -121,6 +123,7 @@ export default function DashboardPage() {
   const toggleTheme = () => {
     const newTheme = theme === "dark" ? "light" : "dark";
     setTheme(newTheme);
+    setProfile(prev => ({ ...prev, theme: newTheme }));
     document.documentElement.setAttribute("data-theme", newTheme);
   };
 
@@ -204,7 +207,7 @@ export default function DashboardPage() {
     setProfile((prev) => {
       const copy = [...prev.projects];
       copy.splice(index, 1);
-      return { ...prev, experiences: prev.experiences, projects: copy }; // Keep other fields
+      return { ...prev, projects: copy };
     });
   };
 
@@ -273,8 +276,8 @@ export default function DashboardPage() {
   if (status === "unauthenticated") {
     return (
       <div className="flex flex-col items-center justify-center py-32 text-center space-y-8">
-        <h1 className="text-4xl font-black uppercase tracking-tighter">Access Denied</h1>
-        <p className="text-neutral-500 max-w-sm">Connect your GitHub account to manage your professional identity.</p>
+        <h1 className="text-4xl font-black uppercase tracking-tighter text-[var(--fg)]">Access Denied</h1>
+        <p className="text-[var(--muted)] max-w-sm">Connect your GitHub account to manage your professional identity.</p>
         <Button onClick={() => signIn("github")}>Authorize GitHub</Button>
       </div>
     );
@@ -292,11 +295,11 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-4xl mx-auto py-12 space-y-20">
-      <header className="space-y-4 border-b border-neutral-900 pb-12">
+      <header className="space-y-4 border-b border-[var(--border)] pb-12">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-1">
-            <h1 className="text-4xl font-bold tracking-tighter uppercase">Command Center</h1>
-            <p className="text-sm font-medium text-neutral-500 uppercase tracking-widest">Profile Configuration</p>
+            <h1 className="text-4xl font-bold tracking-tighter uppercase text-[var(--fg)]">Command Center</h1>
+            <p className="text-sm font-medium text-[var(--muted)] uppercase tracking-widest">Profile Configuration</p>
           </div>
           <div className="flex items-center gap-4">
             <Button variant="outline" className="h-10 text-[10px]" onClick={toggleTheme}>
@@ -314,9 +317,9 @@ export default function DashboardPage() {
         </div>
 
         {(!profile.handle || !profile.bio) && (
-          <div className="mt-8 border border-white p-4 flex items-center justify-between">
+          <div className="mt-8 border border-[var(--fg)] p-4 flex items-center justify-between">
             <span className="text-[10px] font-black uppercase tracking-widest text-[#ff3333]">Attention Required</span>
-            <span className="text-[10px] text-neutral-500 uppercase">Handle and Bio are necessary for public deployment</span>
+            <span className="text-[10px] text-[var(--muted)] uppercase">Handle and Bio are necessary for public deployment</span>
           </div>
         )}
       </header>
@@ -324,26 +327,26 @@ export default function DashboardPage() {
       {/* Advanced Shell Interface */}
       <section className="space-y-4">
         <div className="flex items-center gap-4">
-          <h2 className="text-xs font-black uppercase tracking-[0.3em] text-neutral-600">Advanced Shell</h2>
-          <div className="h-[1px] flex-1 bg-neutral-900" />
+          <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--muted)]">Advanced Shell</h2>
+          <div className="h-[1px] flex-1 bg-[var(--border)]" />
         </div>
         <PortfolioCLI onCommand={handleCLICommand} />
       </section>
 
-      {error && <div className="border border-white p-4 text-[10px] font-bold uppercase text-white">{error}</div>}
-      {message && <div className="border border-neutral-800 p-4 text-[10px] font-bold uppercase text-neutral-400">{message}</div>}
+      {error && <div className="border border-[var(--fg)] p-4 text-[10px] font-bold uppercase text-[var(--fg)]">{error}</div>}
+      {message && <div className="border border-[var(--border)] p-4 text-[10px] font-bold uppercase text-[var(--muted)]">{message}</div>}
 
       <div className="grid grid-cols-1 gap-20">
         {/* GitHub Command */}
         <section className="space-y-8">
           <div className="flex items-center gap-4">
-            <h2 className="text-xs font-black uppercase tracking-[0.3em] text-neutral-600">GitHub Source</h2>
-            <div className="h-[1px] flex-1 bg-neutral-900" />
+            <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--muted)]">GitHub Source</h2>
+            <div className="h-[1px] flex-1 bg-[var(--border)]" />
           </div>
-          <div className="flex flex-col justify-between gap-6 border border-neutral-900 p-8 sm:flex-row sm:items-center">
+          <div className="flex flex-col justify-between gap-6 border border-[var(--border)] p-8 sm:flex-row sm:items-center bg-[var(--surface)]">
             <div className="space-y-2">
-              <h3 className="text-lg font-bold uppercase">{githubConnected ? (githubUsername || "ENGINE CONNECTED") : "NOT CONNECTED"}</h3>
-              <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">
+              <h3 className="text-lg font-bold uppercase text-[var(--fg)]">{githubConnected ? (githubUsername || "ENGINE CONNECTED") : "NOT CONNECTED"}</h3>
+              <p className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-widest">
                 {lastSyncedAt ? `Last Sync: ${new Date(lastSyncedAt).toLocaleString()}` : "Automatic sync recommended"}
               </p>
             </div>
@@ -358,22 +361,22 @@ export default function DashboardPage() {
         {/* Basic Intelligence */}
         <section className="space-y-8">
           <div className="flex items-center gap-4">
-            <h2 className="text-xs font-black uppercase tracking-[0.3em] text-neutral-600">Core Metadata</h2>
-            <div className="h-[1px] flex-1 bg-neutral-900" />
+            <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--muted)]">Core Metadata</h2>
+            <div className="h-[1px] flex-1 bg-[var(--border)]" />
           </div>
           <div className="grid gap-12 sm:grid-cols-2">
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Legal Name</label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-[var(--muted)]">Legal Name</label>
               <input
-                className="w-full bg-transparent border-b border-neutral-900 py-2 outline-none focus:border-white transition-colors"
+                className="w-full bg-transparent border-b border-[var(--border)] py-2 outline-none focus:border-[var(--fg)] transition-colors text-[var(--fg)]"
                 value={profile.name}
                 onChange={(e) => handleFieldChange("name", e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Public Handle</label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-[var(--muted)]">Public Handle</label>
               <input
-                className="w-full bg-transparent border-b border-neutral-900 py-2 outline-none focus:border-white transition-colors"
+                className="w-full bg-transparent border-b border-[var(--border)] py-2 outline-none focus:border-[var(--fg)] transition-colors text-[var(--fg)]"
                 value={profile.handle}
                 onChange={(e) => handleFieldChange("handle", e.target.value)}
                 placeholder="Unique ID"
@@ -381,18 +384,18 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Professional Headline</label>
+            <label className="text-[10px] font-black uppercase tracking-widest text-[var(--muted)]">Professional Headline</label>
             <input
-              className="w-full bg-transparent border-b border-neutral-900 py-2 outline-none focus:border-white transition-colors"
+              className="w-full bg-transparent border-b border-[var(--border)] py-2 outline-none focus:border-[var(--fg)] transition-colors text-[var(--fg)]"
               value={profile.headline ?? ""}
               onChange={(e) => handleFieldChange("headline", e.target.value)}
               placeholder="e.g. SYSTEMS ARCHITECT // FULL STACK"
             />
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Biography</label>
+            <label className="text-[10px] font-black uppercase tracking-widest text-[var(--muted)]">Biography</label>
             <textarea
-              className="w-full bg-transparent border border-neutral-900 p-4 min-h-[160px] outline-none focus:border-white transition-colors resize-none"
+              className="w-full bg-transparent border border-[var(--border)] p-4 min-h-[160px] outline-none focus:border-[var(--fg)] transition-colors resize-none text-[var(--fg)]"
               value={profile.bio ?? ""}
               onChange={(e) => handleFieldChange("bio", e.target.value)}
             />
@@ -402,40 +405,40 @@ export default function DashboardPage() {
         {/* Professional History */}
         <section className="space-y-8">
           <div className="flex items-center justify-between gap-4">
-            <h2 className="text-xs font-black uppercase tracking-[0.3em] text-neutral-600">Professional History</h2>
+            <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--muted)]">Professional History</h2>
             <Button onClick={addExperience} variant="ghost" className="h-8 text-[10px]">+ Add Entry</Button>
           </div>
           <div className="space-y-12">
             {profile.experiences.map((exp, index) => (
-              <div key={index} className="group relative border-l border-neutral-900 pl-8 transition-colors hover:border-white">
+              <div key={index} className="group relative border-l border-[var(--border)] pl-8 transition-colors hover:border-[var(--fg)]">
                 <button
                   onClick={() => removeExperience(index)}
-                  className="absolute -right-4 top-0 text-[10px] font-black uppercase text-neutral-800 hover:text-white transition-colors"
+                  className="absolute -right-4 top-0 text-[10px] font-black uppercase text-[var(--muted)] hover:text-[#ff3333] transition-colors"
                 >
                   Delete
                 </button>
                 <div className="grid gap-8 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Organization</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-[var(--muted)]">Organization</label>
                     <input
-                      className="w-full bg-transparent border-b border-neutral-900 py-2 outline-none focus:border-white transition-colors"
+                      className="w-full bg-transparent border-b border-[var(--border)] py-2 outline-none focus:border-[var(--fg)] transition-colors text-[var(--fg)]"
                       value={exp.company}
                       onChange={(e) => updateExperience(index, { company: e.target.value })}
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Role Title</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-[var(--muted)]">Role Title</label>
                     <input
-                      className="w-full bg-transparent border-b border-neutral-900 py-2 outline-none focus:border-white transition-colors"
+                      className="w-full bg-transparent border-b border-[var(--border)] py-2 outline-none focus:border-[var(--fg)] transition-colors text-[var(--fg)]"
                       value={exp.title}
                       onChange={(e) => updateExperience(index, { title: e.target.value })}
                     />
                   </div>
                 </div>
                 <div className="mt-8 space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Impact Summary</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-[var(--muted)]">Impact Summary</label>
                   <textarea
-                    className="w-full bg-transparent border-b border-neutral-900 py-2 outline-none focus:border-white transition-colors resize-none"
+                    className="w-full bg-transparent border-b border-[var(--border)] py-2 outline-none focus:border-[var(--fg)] transition-colors resize-none text-[var(--fg)]"
                     value={exp.description ?? ""}
                     onChange={(e) => updateExperience(index, { description: e.target.value })}
                   />
@@ -448,30 +451,30 @@ export default function DashboardPage() {
         {/* Intelligence Assets */}
         <section className="space-y-8">
           <div className="flex items-center justify-between gap-4">
-            <h2 className="text-xs font-black uppercase tracking-[0.3em] text-neutral-600">Project Assets</h2>
+            <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--muted)]">Project Assets</h2>
             <Button onClick={addProject} variant="ghost" className="h-8 text-[10px]">+ Add Asset</Button>
           </div>
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
             {profile.projects.map((proj, index) => (
-              <div key={index} className="border border-neutral-900 p-8 space-y-6 relative hover:border-neutral-500 transition-colors">
+              <div key={index} className="border border-[var(--border)] p-8 space-y-6 relative hover:border-[var(--fg)] transition-colors bg-[var(--surface)]">
                 <button
                   onClick={() => removeProject(index)}
-                  className="absolute right-4 top-4 text-[10px] font-black uppercase text-neutral-800 hover:text-white"
+                  className="absolute right-4 top-4 text-[10px] font-black uppercase text-[var(--muted)] hover:text-[#ff3333]"
                 >
                   ×
                 </button>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-neutral-700">Name</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-[var(--muted)]">Name</label>
                   <input
-                    className="w-full bg-transparent border-b border-neutral-800 py-1 outline-none text-sm font-bold uppercase"
+                    className="w-full bg-transparent border-b border-[var(--border)] py-1 outline-none text-sm font-bold uppercase text-[var(--fg)]"
                     value={proj.name}
                     onChange={(e) => updateProject(index, { name: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-neutral-700">Description</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-[var(--muted)]">Description</label>
                   <textarea
-                    className="w-full bg-transparent border-b border-neutral-800 py-1 outline-none text-xs text-neutral-500 resize-none h-12"
+                    className="w-full bg-transparent border-b border-[var(--border)] py-1 outline-none text-xs text-[var(--muted)] resize-none h-12"
                     value={proj.description ?? ""}
                     onChange={(e) => updateProject(index, { description: e.target.value })}
                   />
@@ -484,20 +487,20 @@ export default function DashboardPage() {
         {/* Skills */}
         <section className="space-y-8">
           <div className="flex items-center justify-between gap-4">
-            <h2 className="text-xs font-black uppercase tracking-[0.3em] text-neutral-600">Skills</h2>
+            <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--muted)]">Skills</h2>
             <Button onClick={addSkill} variant="ghost" className="h-8 text-[10px]">+ Add Skill</Button>
           </div>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             {profile.skills.map((skill, index) => (
-              <div key={index} className="border border-neutral-900 p-4 relative group">
+              <div key={index} className="border border-[var(--border)] p-4 relative group bg-[var(--surface)]">
                 <button
                   onClick={() => removeSkill(index)}
-                  className="absolute right-2 top-2 text-[8px] font-black uppercase text-neutral-800 hover:text-white"
+                  className="absolute right-2 top-2 text-[8px] font-black uppercase text-[var(--muted)] hover:text-[#ff3333]"
                 >
                   ×
                 </button>
                 <input
-                  className="w-full bg-transparent border-b border-neutral-900 py-1 outline-none text-[10px] font-bold uppercase"
+                  className="w-full bg-transparent border-b border-[var(--border)] py-1 outline-none text-[10px] font-bold uppercase text-[var(--fg)]"
                   value={skill.name}
                   onChange={(e) => updateSkill(index, { name: e.target.value })}
                 />
@@ -507,7 +510,7 @@ export default function DashboardPage() {
         </section>
       </div>
 
-      <footer className="pt-20 border-t border-neutral-900">
+      <footer className="pt-20 border-t border-[var(--border)]">
         <Button onClick={handleSave} disabled={saving} className="w-full h-16 text-sm">
           {saving ? "Deploying Changes..." : "Commit All Updates"}
         </Button>
