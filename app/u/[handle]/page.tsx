@@ -10,14 +10,10 @@ type PageProps = {
 
 async function resolveHandle(params: any): Promise<string | undefined> {
   if (!params) return undefined;
-
-  // Next 15/16 dynamic APIs: params can be a Promise
   if (typeof params.then === "function") {
     const resolved = await params;
     return resolved?.handle as string | undefined;
   }
-
-  // Older / stable: params is already a plain object
   return params.handle as string | undefined;
 }
 
@@ -27,12 +23,8 @@ async function getUserByHandle(handle: string) {
     include: {
       profile: {
         include: {
-          experiences: {
-            orderBy: { startDate: "desc" },
-          },
-          projects: {
-            orderBy: { createdAt: "desc" },
-          },
+          experiences: { orderBy: { startDate: "desc" } },
+          projects: { orderBy: { createdAt: "desc" } },
           skills: true,
         },
       },
@@ -41,18 +33,9 @@ async function getUserByHandle(handle: string) {
   });
 }
 
-/* -------------------- SEO / OpenGraph -------------------- */
-
 export async function generateMetadata(props: PageProps): Promise<Metadata> {
   const handle = await resolveHandle(props.params);
-
-  // If we can’t resolve the handle at all, just return a generic title.
-  if (!handle) {
-    return {
-      title: "Developer profile",
-      description: "Developer profile.",
-    };
-  }
+  if (!handle) return { title: "Developer Profile" };
 
   const user = await prisma.user.findUnique({
     where: { handle },
@@ -60,231 +43,157 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
   });
 
   if (!user || !user.profile || !user.profile.isPublic) {
-    return {
-      title: "Developer not found",
-      description: "This developer profile is not public or does not exist.",
-    };
+    return { title: "Profile Not Found" };
   }
 
-  const title = `${user.name ?? handle} – Developer profile`;
-  const description =
-    user.profile.headline ??
-    user.profile.bio ??
-    "Developer profile and portfolio.";
-
-  const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-
+  const title = `${user.name ?? handle} — Portfolio`;
   return {
     title,
-    description,
-    openGraph: {
-      title,
-      description,
-      url: `${baseUrl}/u/${handle}`,
-      type: "profile",
-    },
+    description: user.profile.headline ?? user.profile.bio ?? "Developer portfolio.",
   };
 }
 
-/* -------------------- Public profile page -------------------- */
-
 export default async function PublicProfilePage(props: PageProps) {
   const handle = await resolveHandle(props.params);
-
-  // If no handle, 404 immediately instead of calling Prisma with undefined
-  if (!handle) {
-    notFound();
-  }
+  if (!handle) notFound();
 
   const user = await getUserByHandle(handle);
-
-  if (!user || !user.profile || !user.profile.isPublic) {
-    notFound();
-  }
+  if (!user || !user.profile || !user.profile.isPublic) notFound();
 
   const { profile, settings } = user;
 
   return (
-    <main className="mx-auto flex max-w-3xl flex-col gap-8 py-10">
-      {/* Header */}
-      <section className="flex flex-col gap-4 border-b border-slate-800 pb-6">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">
-            {user.name ?? handle}
-          </h1>
-          {profile.headline && (
-            <p className="mt-1 text-sm text-slate-300">
-              {profile.headline}
+    <main className="mx-auto max-w-4xl px-6 py-24 sm:px-12">
+      {/* Meta/Nav Placeholder for ATS - Hidden from view but present for parsers */}
+      <nav className="sr-only">
+        <a href="#about">About</a>
+        <a href="#experience">Experience</a>
+        <a href="#projects">Projects</a>
+        <a href="#skills">Skills</a>
+      </nav>
+
+      <section className="animate-in fade-in slide-in-from-bottom-4 duration-1000">
+        <header className="space-y-6 border-b border-neutral-800 pb-12">
+          <div className="space-y-2">
+            <h1 className="text-4xl font-bold tracking-tighter sm:text-6xl uppercase">
+              {user.name ?? handle}
+            </h1>
+            {profile.headline && (
+              <p className="text-lg font-medium text-neutral-400 sm:text-xl">
+                {profile.headline}
+              </p>
+            )}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-bold uppercase tracking-widest text-neutral-500">
+            {profile.location && <span>{profile.location}</span>}
+            {profile.currentRole && <span>{profile.currentRole}</span>}
+            {profile.currentCompany && <span>@ {profile.currentCompany}</span>}
+            {settings?.availability === "OPEN" && (
+              <span className="text-white border border-white/20 px-2 py-1">Available for new opportunities</span>
+            )}
+          </div>
+
+          <div className="flex flex-wrap gap-6 pt-4 text-xs font-bold uppercase tracking-widest hover:text-white transition-colors">
+            {profile.githubUrl && <a href={profile.githubUrl} target="_blank" className="no-underline hover:underline">GitHub</a>}
+            {profile.linkedinUrl && <a href={profile.linkedinUrl} target="_blank" className="no-underline hover:underline">LinkedIn</a>}
+            {profile.websiteUrl && <a href={profile.websiteUrl} target="_blank" className="no-underline hover:underline">Portfolio</a>}
+            {profile.twitterUrl && <a href={profile.twitterUrl} target="_blank" className="no-underline hover:underline">X / Twitter</a>}
+          </div>
+        </header>
+
+        <div className="grid grid-cols-1 gap-16 pt-16 lg:grid-cols-[200px_1fr]">
+          {/* About Section */}
+          <aside className="space-y-2">
+            <h2 id="about" className="text-xs font-black uppercase tracking-[0.3em] text-neutral-600">About</h2>
+          </aside>
+          <div className="space-y-6">
+            <p className="text-xl leading-relaxed text-neutral-300">
+              {profile.bio || "No biography provided."}
             </p>
-          )}
-        </div>
+          </div>
 
-        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
-          {profile.location && <span>{profile.location}</span>}
-          {profile.currentRole && <span>• {profile.currentRole}</span>}
-          {profile.currentCompany && <span>@ {profile.currentCompany}</span>}
-          {settings?.availability && (
-            <span className="rounded-full border border-emerald-500/50 px-2 py-0.5 text-[11px] text-emerald-300">
-              {settings.availability === "OPEN"
-                ? "Open to work"
-                : settings.availability === "BUSY"
-                ? "Busy"
-                : "Not looking"}
-            </span>
+          {/* Experience Section */}
+          {profile.experiences.length > 0 && (
+            <>
+              <aside className="space-y-2">
+                <h2 id="experience" className="text-xs font-black uppercase tracking-[0.3em] text-neutral-600">Experience</h2>
+              </aside>
+              <div className="space-y-12">
+                {profile.experiences.map((exp) => (
+                  <article key={exp.id} className="group space-y-4">
+                    <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-baseline">
+                      <h3 className="text-2xl font-bold group-hover:text-white transition-colors">
+                        {exp.title} <span className="text-neutral-500 font-medium">@ {exp.company}</span>
+                      </h3>
+                      <span className="text-xs font-bold uppercase tracking-widest text-neutral-500">
+                        {exp.startDate.getFullYear()} — {exp.isCurrent ? "Present" : exp.endDate?.getFullYear()}
+                      </span>
+                    </div>
+                    <p className="max-w-2xl text-neutral-400 transition-colors group-hover:text-neutral-300">
+                      {exp.description}
+                    </p>
+                  </article>
+                ))}
+              </div>
+            </>
           )}
-        </div>
 
-        {/* Links */}
-        <div className="flex flex-wrap gap-3 text-sm text-slate-300">
-          {profile.githubUrl && (
-            <a
-              href={profile.githubUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="underline-offset-4 hover:underline"
-            >
-              GitHub
-            </a>
+          {/* Projects Section */}
+          {profile.projects.length > 0 && (
+            <>
+              <aside className="space-y-2">
+                <h2 id="projects" className="text-xs font-black uppercase tracking-[0.3em] text-neutral-600">Projects</h2>
+              </aside>
+              <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
+                {profile.projects.map((proj) => (
+                  <article key={proj.id} className="group relative border border-neutral-900 p-8 hover:border-neutral-700 transition-all duration-500">
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-bold uppercase tracking-tight group-hover:text-white">
+                        {proj.name}
+                      </h3>
+                      <p className="text-sm leading-relaxed text-neutral-500 group-hover:text-neutral-400">
+                        {proj.description}
+                      </p>
+                      {proj.techStack && (
+                        <div className="pt-4 text-[10px] font-black uppercase tracking-widest text-neutral-600">
+                          {proj.techStack}
+                        </div>
+                      )}
+                      {proj.url && (
+                        <a href={proj.url} target="_blank" className="absolute inset-0 z-10 opacity-0">View Project</a>
+                      )}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </>
           )}
-          {profile.linkedinUrl && (
-            <a
-              href={profile.linkedinUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="underline-offset-4 hover:underline"
-            >
-              LinkedIn
-            </a>
-          )}
-          {profile.websiteUrl && (
-            <a
-              href={profile.websiteUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="underline-offset-4 hover:underline"
-            >
-              Website
-            </a>
-          )}
-          {profile.twitterUrl && (
-            <a
-              href={profile.twitterUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="underline-offset-4 hover:underline"
-            >
-              X / Twitter
-            </a>
+
+          {/* Skills Section */}
+          {profile.skills.length > 0 && (
+            <>
+              <aside className="space-y-2">
+                <h2 id="skills" className="text-xs font-black uppercase tracking-[0.3em] text-neutral-600">Skills</h2>
+              </aside>
+              <div className="flex flex-wrap gap-x-12 gap-y-6">
+                {profile.skills.map((skill) => (
+                  <div key={skill.id} className="space-y-1">
+                    <div className="text-lg font-bold">{skill.name}</div>
+                    <div className="text-[10px] uppercase font-black tracking-widest text-neutral-600">
+                      {skill.level || "Proficient"}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
       </section>
 
-      {/* About */}
-      {profile.bio && (
-        <section className="space-y-2">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-            About
-          </h2>
-          <p className="whitespace-pre-line text-sm leading-relaxed text-slate-200">
-            {profile.bio}
-          </p>
-        </section>
-      )}
-
-      {/* Experience */}
-      {profile.experiences.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-            Experience
-          </h2>
-          <div className="space-y-4">
-            {profile.experiences.map((exp) => (
-              <div key={exp.id} className="space-y-1 text-sm">
-                <div className="flex flex-wrap items-baseline gap-2">
-                  <span className="font-medium text-slate-100">
-                    {exp.title}
-                  </span>
-                  <span className="text-slate-300">@ {exp.company}</span>
-                </div>
-                <div className="text-xs text-slate-400">
-                  {exp.location && <span>{exp.location} • </span>}
-                  <span>
-                    {exp.startDate.toLocaleDateString()} –{" "}
-                    {exp.isCurrent
-                      ? "Present"
-                      : exp.endDate?.toLocaleDateString() ?? "End"}
-                  </span>
-                </div>
-                {exp.description && (
-                  <p className="mt-1 text-xs leading-relaxed text-slate-300">
-                    {exp.description}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Projects */}
-      {profile.projects.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-            Projects
-          </h2>
-          <div className="space-y-4">
-            {profile.projects.map((proj) => (
-              <div key={proj.id} className="space-y-1 text-sm">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-medium text-slate-100">
-                    {proj.name}
-                  </span>
-                  {proj.url && (
-                    <a
-                      href={proj.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-xs text-sky-400 underline-offset-4 hover:underline"
-                    >
-                      View
-                    </a>
-                  )}
-                </div>
-                {proj.description && (
-                  <p className="text-xs leading-relaxed text-slate-300">
-                    {proj.description}
-                  </p>
-                )}
-                {proj.techStack && (
-                  <p className="text-[11px] text-slate-400">
-                    {proj.techStack}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Skills */}
-      {profile.skills.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-            Skills
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {profile.skills.map((skill) => (
-              <span
-                key={skill.id}
-                className="rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-200"
-              >
-                {skill.name}
-              </span>
-            ))}
-          </div>
-        </section>
-      )}
+      <footer className="mt-32 pt-12 border-t border-neutral-900 text-[10px] font-bold uppercase tracking-[0.4em] text-neutral-700 text-center">
+        Generated by dev-apply • {new Date().getFullYear()}
+      </footer>
     </main>
   );
 }

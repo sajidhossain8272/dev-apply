@@ -1,65 +1,68 @@
+"use client";
+
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 
 export default function HomePage() {
   return (
-    <section className="space-y-10">
-      <div className="max-w-3xl space-y-6">
-        <p className="text-xs uppercase tracking-[0.25em] text-sky-400">
-          open source · for developers
-        </p>
-        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-          One click from GitHub to{" "}
-          <span className="text-sky-400">ATS resume</span> and{" "}
-          <span className="text-sky-400">live portfolio</span>.
-        </h1>
-        <p className="text-sm leading-relaxed text-slate-300 sm:text-base">
-          Sign in with GitHub, get an instant ATS-friendly resume and a clean
-          one-page portfolio on our subdomain. Your experience stays up to
-          date, and automation can help you apply to the right opportunities.
-        </p>
-
-        <div className="flex flex-wrap gap-3">
-          <Link href="/api/auth/signin?provider=github">
-            <Button>Sign in with GitHub</Button>
-          </Link>
-          <Link href="/dashboard">
-            <Button variant="ghost">View dashboard</Button>
-          </Link>
-        </div>
-
-        <p className="text-xs text-slate-400">
-          Freemium later, but the core will stay free and open source.
-        </p>
+    <section className="relative flex flex-col items-center justify-center py-20 text-center">
+      {/* Background Micro-animation Element */}
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute top-[10%] left-[10%] h-64 w-64 bg-white/5 blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[10%] right-[10%] h-64 w-64 bg-white/5 blur-[120px] animate-pulse delay-700" />
       </div>
 
-      <div className="grid gap-4 rounded-2xl border border-slate-800/80 bg-slate-950/60 p-4 sm:grid-cols-3 sm:p-6">
-        <div className="space-y-1">
-          <p className="text-xs font-semibold text-slate-200">
-            ATS-friendly by default
+      <div className="max-w-4xl space-y-12">
+        <div className="space-y-4">
+          <p className="text-[10px] font-bold uppercase tracking-[0.5em] text-neutral-500">
+            Professional Identity • Open Source
           </p>
-          <p className="text-xs text-slate-400">
-            Simple typography and structure that parses cleanly in ATS systems
-            and hiring tools.
-          </p>
-        </div>
-        <div className="space-y-1">
-          <p className="text-xs font-semibold text-slate-200">
-            Live portfolio URL
-          </p>
-          <p className="text-xs text-slate-400">
-            Each developer gets a unique SEO-friendly URL like
-            <span className="font-mono"> /u/your-handle</span>.
+          <h1 className="text-5xl font-bold tracking-tighter sm:text-7xl xl:text-8xl">
+            FROM CODE TO <span className="text-neutral-500">CAREER.</span>
+          </h1>
+          <p className="mx-auto max-w-2xl text-lg leading-relaxed text-neutral-400 sm:text-xl">
+            Generate a state-of-the-art, ATS-compatible portfolio and resume directly
+            from your GitHub data. Built for developers who let their work speak for itself.
           </p>
         </div>
-        <div className="space-y-1">
-          <p className="text-xs font-semibold text-slate-200">
-            Automation-ready
-          </p>
-          <p className="text-xs text-slate-400">
-            Hooks for n8n, cron jobs and AI to match jobs and send custom
-            applications later.
-          </p>
+
+        <div className="flex flex-col items-center justify-center gap-6 sm:flex-row">
+          <Button
+            onClick={() => signIn("github", { callbackUrl: "/dashboard" })}
+            className="w-full sm:w-auto"
+          >
+            Connect GitHub
+          </Button>
+          <Link href="/dashboard" className="w-full sm:w-auto">
+            <Button variant="outline" className="w-full">
+              Enter Dashboard
+            </Button>
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 gap-12 pt-20 text-left sm:grid-cols-3">
+          <div className="group space-y-4">
+            <div className="h-[1px] w-full bg-neutral-800 transition-colors group-hover:bg-neutral-400" />
+            <h3 className="text-xs font-bold uppercase tracking-widest">ATS Optimized</h3>
+            <p className="text-sm leading-relaxed text-neutral-500 transition-colors group-hover:text-neutral-300">
+              Clean structure and semantic HTML that passes through recruitment software without errors.
+            </p>
+          </div>
+          <div className="group space-y-4">
+            <div className="h-[1px] w-full bg-neutral-800 transition-colors group-hover:bg-neutral-400" />
+            <h3 className="text-xs font-bold uppercase tracking-widest">Pinned Projects</h3>
+            <p className="text-sm leading-relaxed text-neutral-500 transition-colors group-hover:text-neutral-300">
+              Automatically imports your pinned repositories as high-quality project showcases.
+            </p>
+          </div>
+          <div className="group space-y-4">
+            <div className="h-[1px] w-full bg-neutral-800 transition-colors group-hover:bg-neutral-400" />
+            <h3 className="text-xs font-bold uppercase tracking-widest">Stable Identity</h3>
+            <p className="text-sm leading-relaxed text-neutral-500 transition-colors group-hover:text-neutral-300">
+              Your own stable URL at <span className="font-mono opacity-80">/u/handle</span> to share with the world.
+            </p>
+          </div>
         </div>
       </div>
     </section>

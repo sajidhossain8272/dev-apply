@@ -23,10 +23,17 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  // GitHub Integration
+  githubAccessToken  String?    // Store GitHub OAuth token
+  githubUsername     String?    // GitHub username
+  lastGithubSyncAt   DateTime?  // Last successful sync timestamp
+
   accounts      Account[]
   sessions      Session[]
   profile       Profile?
   settings      UserSettings?
+  repositories  Repository[]
+  contributions GitHubContribution[]
 }
 
 model Profile {
@@ -50,6 +57,7 @@ model Profile {
   experiences    Experience[]
   projects       Project[]
   skills         Skill[]
+  snapshots      ProfileSnapshot[]
 
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
@@ -98,6 +106,19 @@ model Skill {
   createdAt DateTime @default(now())
 }
 
+model ProfileSnapshot {
+  id        String   @id @default(cuid())
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId String
+  
+  data      Json     // Store full profile state as JSON
+  summary   String?  // Optional: "Synced from GitHub", "Manual Save", etc.
+  
+  createdAt DateTime @default(now())
+
+  @@index([profileId])
+}
+
 model UserSettings {
   id               String             @id @default(cuid())
   user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -106,9 +127,11 @@ model UserSettings {
   activelyLooking  Boolean            @default(true)
   hideMatchesUntil DateTime?
   premium          Boolean            @default(false)
+  
+  // GitHub Sync Settings
+  autoGithubSync   Boolean            @default(true)
+  syncFrequency    String             @default("daily") // daily, weekly, manual
 }
-
-/* --- NextAuth models (Prisma adapter) --- */
 
 model Account {
   id                 String  @id @default(cuid())
@@ -130,7 +153,6 @@ model Account {
   @@unique([provider, providerAccountId])
 }
 
-
 model Session {
   id            String   @id @default(cuid())
   sessionToken  String   @unique
@@ -145,4 +167,42 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model Repository {
+  id              String   @id @default(cuid())
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String
+  
+  githubId        Int      @unique
+  name            String
+  fullName        String   // owner/repo
+  description     String?
+  url             String
+  homepage        String?
+  
+  language        String?
+  stars           Int      @default(0)
+  forks           Int      @default(0)
+  isPrivate       Boolean  @default(false)
+  isFork          Boolean  @default(false)
+  
+  topics          String[] // Array of topics/tags
+  createdAt       DateTime
+  updatedAt       DateTime
+  lastPushedAt    DateTime?
+  
+  importedAt      DateTime @default(now())
+}
+
+model GitHubContribution {
+  id              String   @id @default(cuid())
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String
+  
+  date            DateTime
+  count           Int      @default(0)
+  level           String   // NONE, LOW, MEDIUM, HIGH, VERY_HIGH
+  
+  @@unique([userId, date])
 }

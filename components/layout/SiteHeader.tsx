@@ -8,52 +8,47 @@ export function SiteHeader() {
   const { data: session, status } = useSession();
 
   return (
-    <header className="sticky top-0 z-20 border-b border-slate-800/80 bg-bg/80 backdrop-blur">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="h-7 w-7 rounded-lg bg-sky-500" />
-          <span className="text-sm font-semibold tracking-tight">
+    <header className="sticky top-0 z-50 border-b border-neutral-900 bg-black/80 backdrop-blur-md">
+      <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+        <Link href="/" className="flex items-center gap-3 group">
+          <div className="h-6 w-6 border-2 border-white bg-black transition-transform group-hover:rotate-45" />
+          <span className="text-sm font-black uppercase tracking-[0.3em]">
             dev-apply
           </span>
         </Link>
 
-        <nav className="flex items-center gap-3 text-xs text-slate-300">
+        <nav className="flex items-center gap-6">
           {session?.user && (
-            <>
-              <span className="hidden sm:inline">
-                {session.user.name ?? session.user.email}
+            <Link href="/dashboard">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500 hover:text-white transition-colors">
+                Dashboard
               </span>
-              <Link href="/dashboard">
-                <Button variant="ghost" className="text-xs">
-                  Dashboard
-                </Button>
-              </Link>
-            </>
+            </Link>
           )}
 
           {status === "loading" && (
-            <span className="text-xs text-slate-400">Checking session…</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-700">Loading</span>
           )}
 
           {status === "unauthenticated" && (
             <Button
               type="button"
               variant="outline"
-              className="text-xs"
+              className="h-8 px-4 text-[10px]"
               onClick={() => signIn("github")}
             >
-              Sign in with GitHub
+              Sign In
             </Button>
           )}
 
           {status === "authenticated" && (
             <Button
               type="button"
-              variant="outline"
-              className="text-xs"
+              variant="ghost"
+              className="h-8 px-4 text-[10px] text-neutral-500 hover:text-white"
               onClick={() => signOut()}
             >
-              Sign out
+              Log Out
             </Button>
           )}
         </nav>

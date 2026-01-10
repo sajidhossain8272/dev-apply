@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ProfileInputSchema } from "@/lib/validation";
+import { ProfileService } from "@/lib/profile-service";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -89,6 +90,9 @@ export async function POST(request: Request) {
       { status: 409 }
     );
   }
+
+  // Version Control: Take snapshot before updating
+  await ProfileService.takeSnapshot(session.user.id, "AUTO-SAVE (UI UPDATE)");
 
   // Make sure user + profile exists
   const user = await prisma.user.update({
