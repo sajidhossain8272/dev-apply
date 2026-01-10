@@ -45,7 +45,7 @@ export function SiteHeader() {
             <Button
               type="button"
               variant="ghost"
-              className="h-8 px-4 text-[10px] text-neutral-500 hover:text-white"
+              className="h-8 px-4 text-[10px] text-[var(--muted)] hover:text-[var(--fg)]"
               onClick={() => signOut()}
             >
               Log Out

@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { SiteHeader } from "@/components/layout/SiteHeader";
 export const dynamic = "force-dynamic";
 
 // We don't trust Next about params shape being sync/async, so we normalize it.
@@ -66,6 +67,7 @@ export default async function PublicProfilePage(props: PageProps) {
 
   return (
     <div data-theme={theme} className="min-h-screen bg-[var(--bg-color)] text-[var(--text-color)] transition-colors duration-300">
+      <SiteHeader />
       <main className="mx-auto max-w-4xl px-6 py-24 sm:px-12">
         {/* Meta/Nav Placeholder for ATS - Hidden from view but present for parsers */}
         <nav className="sr-only">

@@ -19,10 +19,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="antialiased font-sans transition-colors duration-300">
         <Providers>
-          <SiteHeader />
-          <main className="mx-auto min-h-screen max-w-5xl px-4 py-10">
-            {children}
-          </main>
+          {children}
         </Providers>
       </body>
     </html>
