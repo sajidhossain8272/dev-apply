@@ -32,7 +32,6 @@ export async function POST() {
         );
 
         return NextResponse.json({
-            success: true,
             message: "GitHub data synced successfully",
             ...result,
         });

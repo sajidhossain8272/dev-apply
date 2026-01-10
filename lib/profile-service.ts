@@ -17,7 +17,7 @@ export class ProfileService {
         if (!profile) return null;
 
         // Create the snapshot with full data blob
-        const snapshot = await prisma.profileSnapshot.create({
+        const snapshot = await (prisma as any).profileSnapshot.create({
             data: {
                 profileId: profile.id,
                 summary,
@@ -32,7 +32,7 @@ export class ProfileService {
      * Rollback a profile to a specific snapshot
      */
     static async rollback(userId: string, snapshotId: string) {
-        const snapshot = await prisma.profileSnapshot.findFirst({
+        const snapshot = await (prisma as any).profileSnapshot.findFirst({
             where: {
                 id: snapshotId,
                 profile: { userId }
@@ -110,7 +110,7 @@ export class ProfileService {
     }
 
     static async getSnapshots(userId: string) {
-        return await prisma.profileSnapshot.findMany({
+        return await (prisma as any).profileSnapshot.findMany({
             where: { profile: { userId } },
             orderBy: { createdAt: "desc" },
             take: 10,
