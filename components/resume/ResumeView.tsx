@@ -72,9 +72,9 @@ export function ResumeView({
 
   return (
     <div className="resume-wrapper max-w-4xl mx-auto my-6 px-4">
-      {/* Top Action Bar (Hidden during Print) */}
-      <div className="print:hidden mb-6 flex flex-wrap items-center justify-between gap-4 p-4 bg-neutral-900 border border-neutral-800 rounded-xl shadow-lg">
-        {!isPublicView ? (
+      {/* Top Action Bar (Studio mode only) */}
+      {!isPublicView && (
+        <div className="print:hidden mb-6 flex flex-wrap items-center justify-between gap-4 p-4 bg-neutral-900 border border-neutral-800 rounded-xl shadow-lg">
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold text-neutral-300">Template Style:</span>
             <button
@@ -98,13 +98,7 @@ export function ResumeView({
               Compact (Minimalist)
             </button>
           </div>
-        ) : (
-          <div className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
-            Online Resume
-          </div>
-        )}
 
-        <div className="flex items-center gap-3 ml-auto">
           {publicUrl && (
             <button
               onClick={() => {
@@ -116,22 +110,8 @@ export function ResumeView({
               Copy Link
             </button>
           )}
-          <button
-            onClick={handlePrint}
-            className="px-4 py-1.5 text-xs font-bold text-black bg-white rounded-lg hover:bg-neutral-200 shadow transition-colors flex items-center gap-1.5"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-              ></path>
-            </svg>
-            Print / Download PDF
-          </button>
         </div>
-      </div>
+      )}
 
       {/* Embedded Resume CSS Styles derived from Sajid & Mehrab templates */}
       <style jsx global>{`
@@ -152,25 +132,28 @@ export function ResumeView({
         }
 
         @media print {
-          html, body {
-            background-color: #ffffff !important;
-            margin: 0 !important;
-            padding: 0 !important;
+          body * {
+            visibility: hidden !important;
           }
-          .resume-wrapper {
-            max-width: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
+          .resume-paper,
+          .resume-paper * {
+            visibility: visible !important;
           }
           .resume-paper {
-            box-shadow: none !important;
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            margin: 0 !important;
             padding: 0 !important;
+            box-shadow: none !important;
             border-radius: 0 !important;
             font-size: ${isSajidStyle ? "10.5px" : "9.5px"} !important;
             line-height: ${isSajidStyle ? "1.3" : "1.25"} !important;
           }
           .print\\:hidden {
             display: none !important;
+            visibility: hidden !important;
           }
           a {
             text-decoration: none !important;
@@ -450,6 +433,24 @@ export function ResumeView({
             </section>
           )}
         </div>
+      </div>
+
+      {/* Bottom Print / Download Action Button (Hidden during print) */}
+      <div className="print:hidden mt-8 text-center">
+        <button
+          onClick={handlePrint}
+          className="px-6 py-2.5 text-xs font-bold text-black bg-white rounded-lg hover:bg-neutral-200 shadow-lg border border-neutral-300 transition-all inline-flex items-center gap-2 active:scale-95"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+            ></path>
+          </svg>
+          Print / Download PDF
+        </button>
       </div>
     </div>
   );

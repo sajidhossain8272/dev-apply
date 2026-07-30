@@ -8,7 +8,7 @@ export function SiteHeader() {
   const { data: session, status } = useSession();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--bg)]/80 backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--bg)]/80 backdrop-blur-md print:hidden">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
         <Link href="/" className="flex items-center gap-3 group">
           <div className="h-6 w-6 border-2 border-[var(--fg)] bg-[var(--bg)] transition-transform group-hover:rotate-45" />

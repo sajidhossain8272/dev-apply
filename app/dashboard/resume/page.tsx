@@ -182,7 +182,7 @@ export default function ResumeBuilderPage() {
 
       <main className="max-w-6xl mx-auto px-6 py-12">
         {/* Navigation & Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-8 pb-6 border-b border-neutral-800">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-8 pb-6 border-b border-neutral-800 print:hidden">
           <div>
             <div className="flex items-center gap-3">
               <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
@@ -434,7 +434,7 @@ export default function ResumeBuilderPage() {
         {/* STEP 4: LIVE PREVIEW & ACTIONS */}
         {step === "preview" && currentResume && (
           <div className="space-y-6">
-            <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-neutral-900 border border-neutral-800 rounded-xl">
+            <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-neutral-900 border border-neutral-800 rounded-xl print:hidden">
               <div>
                 <span className="text-xs text-emerald-400 font-bold uppercase">
                   {templateStyle === "MEHRAB_MINIMAL" ? "Compact Minimalist URL" : "Modern Tech Standard URL"}
