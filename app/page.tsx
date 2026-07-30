@@ -12,9 +12,9 @@ export default function HomePage() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      router.replace("/dashboard");
+      window.location.href = "/dashboard";
     }
-  }, [status, router]);
+  }, [status]);
 
   if (status === "loading") {
     return (
