@@ -8,8 +8,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 export const dynamic = "force-dynamic";
 
 type PageProps = {
-  params: Promise<{ slug: string }>;
-  searchParams?: Promise<{ style?: string }>;
+  params: Promise<{ slug: string; variant: string }>;
 };
 
 async function getResumeBySlug(slug: string) {
@@ -27,7 +26,7 @@ async function getResumeBySlug(slug: string) {
 }
 
 export async function generateMetadata(props: PageProps): Promise<Metadata> {
-  const { slug } = await props.params;
+  const { slug, variant } = await props.params;
   const resume = await getResumeBySlug(slug);
 
   if (!resume || !resume.isPublic) {
@@ -36,7 +35,8 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
 
   const content = resume.content as ResumeData;
   const name = content.name || resume.user.name || "Developer";
-  const title = `${name} – Software Developer Resume`;
+  const variantTitle = variant === "minimal" || variant === "compact" ? "Compact Minimalist" : "Modern Tech Standard";
+  const title = `${name} – ${variantTitle} Resume`;
 
   return {
     title,
@@ -49,9 +49,8 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
   };
 }
 
-export default async function PublicResumePage(props: PageProps) {
-  const { slug } = await props.params;
-  const searchParams = props.searchParams ? await props.searchParams : {};
+export default async function PublicResumeVariantPage(props: PageProps) {
+  const { slug, variant } = await props.params;
   const resume = await getResumeBySlug(slug);
 
   if (!resume || !resume.isPublic) {
@@ -59,17 +58,11 @@ export default async function PublicResumePage(props: PageProps) {
   }
 
   const content = resume.content as ResumeData;
-  
-  // Dynamic template selection from URL query or database default
-  let style: "SAJID_STANDARD" | "MEHRAB_MINIMAL" = resume.templateStyle as "SAJID_STANDARD" | "MEHRAB_MINIMAL";
-  if (searchParams?.style) {
-    const s = searchParams.style.toLowerCase();
-    if (s === "minimal" || s === "compact" || s === "mehrab_minimal") {
-      style = "MEHRAB_MINIMAL";
-    } else if (s === "standard" || s === "modern" || s === "sajid_standard") {
-      style = "SAJID_STANDARD";
-    }
-  }
+  const v = (variant || "").toLowerCase();
+  const style: "SAJID_STANDARD" | "MEHRAB_MINIMAL" =
+    v === "minimal" || v === "compact" || v === "mehrab_minimal"
+      ? "MEHRAB_MINIMAL"
+      : "SAJID_STANDARD";
 
   return (
     <div className="min-h-screen bg-black text-white selection:bg-emerald-500 selection:text-black">

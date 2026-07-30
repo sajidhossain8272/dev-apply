@@ -173,7 +173,8 @@ export default function ResumeBuilderPage() {
   }
 
   const appUrl = typeof window !== "undefined" ? window.location.origin : "";
-  const publicShareUrl = currentResume ? `${appUrl}/r/${currentResume.slug}` : "";
+  const variantSlug = templateStyle === "MEHRAB_MINIMAL" ? "minimal" : "standard";
+  const publicShareUrl = currentResume ? `${appUrl}/r/${currentResume.slug}/${variantSlug}` : "";
 
   return (
     <div className="min-h-screen bg-black text-white selection:bg-emerald-500 selection:text-black">
@@ -435,7 +436,9 @@ export default function ResumeBuilderPage() {
           <div className="space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-neutral-900 border border-neutral-800 rounded-xl">
               <div>
-                <span className="text-xs text-emerald-400 font-bold uppercase">Public Share URL</span>
+                <span className="text-xs text-emerald-400 font-bold uppercase">
+                  {templateStyle === "MEHRAB_MINIMAL" ? "Compact Minimalist URL" : "Modern Tech Standard URL"}
+                </span>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-xs font-mono text-neutral-300 bg-neutral-950 px-3 py-1.5 rounded border border-neutral-800 select-all">
                     {publicShareUrl}
@@ -444,7 +447,7 @@ export default function ResumeBuilderPage() {
                     href={publicShareUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-xs text-emerald-400 hover:underline"
+                    className="text-xs text-emerald-400 hover:underline font-semibold"
                   >
                     Open Page ↗
                   </a>

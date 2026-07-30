@@ -73,8 +73,8 @@ export function ResumeView({
   return (
     <div className="resume-wrapper max-w-4xl mx-auto my-6 px-4">
       {/* Top Action Bar (Hidden during Print) */}
-      {!isPublicView && (
-        <div className="print:hidden mb-6 flex flex-wrap items-center justify-between gap-4 p-4 bg-neutral-900 border border-neutral-800 rounded-xl shadow-lg">
+      <div className="print:hidden mb-6 flex flex-wrap items-center justify-between gap-4 p-4 bg-neutral-900 border border-neutral-800 rounded-xl shadow-lg">
+        {!isPublicView ? (
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold text-neutral-300">Template Style:</span>
             <button
@@ -98,36 +98,40 @@ export function ResumeView({
               Compact (Minimalist)
             </button>
           </div>
-
-          <div className="flex items-center gap-3">
-            {publicUrl && (
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(publicUrl);
-                  alert("Resume URL copied to clipboard!");
-                }}
-                className="px-3 py-1.5 text-xs font-medium text-neutral-300 bg-neutral-800 border border-neutral-700 rounded-lg hover:bg-neutral-700 transition-colors"
-              >
-                Copy Link
-              </button>
-            )}
-            <button
-              onClick={handlePrint}
-              className="px-4 py-1.5 text-xs font-bold text-black bg-white rounded-lg hover:bg-neutral-200 shadow transition-colors flex items-center gap-1.5"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-                ></path>
-              </svg>
-              Print / Download PDF
-            </button>
+        ) : (
+          <div className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
+            Online Resume
           </div>
+        )}
+
+        <div className="flex items-center gap-3 ml-auto">
+          {publicUrl && (
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(publicUrl);
+                alert("Resume URL copied to clipboard!");
+              }}
+              className="px-3 py-1.5 text-xs font-medium text-neutral-300 bg-neutral-800 border border-neutral-700 rounded-lg hover:bg-neutral-700 transition-colors"
+            >
+              Copy Link
+            </button>
+          )}
+          <button
+            onClick={handlePrint}
+            className="px-4 py-1.5 text-xs font-bold text-black bg-white rounded-lg hover:bg-neutral-200 shadow transition-colors flex items-center gap-1.5"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+              ></path>
+            </svg>
+            Print / Download PDF
+          </button>
         </div>
-      )}
+      </div>
 
       {/* Embedded Resume CSS Styles derived from Sajid & Mehrab templates */}
       <style jsx global>{`
