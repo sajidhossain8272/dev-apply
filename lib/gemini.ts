@@ -241,3 +241,40 @@ Instructions:
     throw new Error("AI resume content synthesis returned invalid JSON formatting.");
   }
 }
+
+/**
+ * Generate a AI-written answer suggestion for a questionnaire input box.
+ * If userDraft is provided, it refines and expands it.
+ * If userDraft is empty, it uses profile & GitHub context to write a compelling answer.
+ */
+export async function generateAnswerSuggestion(params: {
+  question: string;
+  category?: string;
+  hint?: string;
+  userDraft?: string;
+  userProfile?: any;
+  githubRepos?: any[];
+}): Promise<string> {
+  const prompt = `
+You are an expert AI resume writer and technical career consultant.
+
+Question asked to the developer: "${params.question}"
+${params.category ? `Category: ${params.category}` : ""}
+${params.hint ? `Tip/Guidance: ${params.hint}` : ""}
+
+Developer Context:
+- Profile: ${JSON.stringify(params.userProfile || {})}
+- Public Repositories (sample): ${JSON.stringify((params.githubRepos || []).slice(0, 6))}
+${params.userDraft && params.userDraft.trim() ? `- Optional notes/draft provided by user: "${params.userDraft}"` : "- Note: User provided no initial notes. Auto-generate a realistic, tailored, high-impact response based on their background and projects."}
+
+Instructions:
+1. Write a direct, professional, 2-4 sentence response in the developer's first-person voice ("I built...", "I optimized...", "My core stack...").
+2. Include specific technologies, metrics, or architectural highlights wherever relevant.
+3. Keep it crisp, polished, ATS-friendly, and ready to be placed into a resume input box.
+4. Output ONLY the response text without any markdown wrappers, quotes, or conversational intro.
+`.trim();
+
+  const text = await callGeminiApi(prompt, "questionnaire", false);
+  return text.trim();
+}
+

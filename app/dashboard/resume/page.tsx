@@ -22,6 +22,7 @@ export default function ResumeBuilderPage() {
   const [questions, setQuestions] = useState<QuestionItem[]>([]);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [loadingQuestions, setLoadingQuestions] = useState(false);
+  const [loadingSuggest, setLoadingSuggest] = useState<Record<number, boolean>>({});
   const [generatingResume, setGeneratingResume] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,6 +30,40 @@ export default function ResumeBuilderPage() {
   const [templateStyle, setTemplateStyle] = useState<"SAJID_STANDARD" | "MEHRAB_MINIMAL">("SAJID_STANDARD");
   const [currentResume, setCurrentResume] = useState<any | null>(null);
   const [userResumes, setUserResumes] = useState<any[]>([]);
+
+  const handleWriteWithAi = async (idx: number) => {
+    const q = questions[idx];
+    if (!q) return;
+
+    try {
+      setLoadingSuggest((prev) => ({ ...prev, [idx]: true }));
+      const res = await fetch("/api/resume/suggest-answer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: q.question,
+          category: q.category,
+          hint: q.hint,
+          userDraft: answers[idx] || "",
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to generate suggestion.");
+      }
+
+      const data = await res.json();
+      if (data.suggestion) {
+        setAnswers((prev) => ({ ...prev, [idx]: data.suggestion }));
+      }
+    } catch (err: any) {
+      console.error("AI suggestion error:", err);
+      alert(err.message || "Failed to generate AI suggestion.");
+    } finally {
+      setLoadingSuggest((prev) => ({ ...prev, [idx]: false }));
+    }
+  };
 
   // Fetch Existing Resumes on Mount
   useEffect(() => {
@@ -309,23 +344,60 @@ export default function ResumeBuilderPage() {
             </div>
 
             {questions.map((q, idx) => (
-              <div key={idx} className="p-6 bg-neutral-950 border border-neutral-800 rounded-xl space-y-3">
-                <div className="flex items-center justify-between">
+              <div key={idx} className="p-6 bg-neutral-950 border border-neutral-800 rounded-xl space-y-3 relative group">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
                     Question {idx + 1} {q.category ? `• ${q.category}` : ""}
                   </span>
+
+                  <button
+                    type="button"
+                    onClick={() => handleWriteWithAi(idx)}
+                    disabled={loadingSuggest[idx]}
+                    className="px-3 py-1.5 text-xs font-bold text-emerald-300 bg-emerald-950/80 border border-emerald-500/40 rounded-lg hover:bg-emerald-900 hover:border-emerald-400 transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-50"
+                  >
+                    {loadingSuggest[idx] ? (
+                      <>
+                        <span className="animate-spin h-3 w-3 border-2 border-emerald-400 border-t-transparent rounded-full"></span>
+                        Writing with AI...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        {answers[idx]?.trim() ? "✨ Refine with AI" : "✨ Write with AI"}
+                      </>
+                    )}
+                  </button>
                 </div>
+
                 <label className="block text-sm font-semibold text-neutral-200">
                   {q.question}
                 </label>
                 {q.hint && <p className="text-xs text-neutral-500 italic">Tip: {q.hint}</p>}
-                <textarea
-                  rows={3}
-                  value={answers[idx] || ""}
-                  onChange={(e) => setAnswers({ ...answers, [idx]: e.target.value })}
-                  placeholder="Type your response here..."
-                  className="w-full px-4 py-2.5 bg-neutral-900 border border-neutral-800 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors"
-                />
+
+                <div className="relative">
+                  <textarea
+                    rows={3}
+                    value={answers[idx] || ""}
+                    onChange={(e) => setAnswers({ ...answers, [idx]: e.target.value })}
+                    placeholder="Type notes or click 'Write with AI' (leave empty to auto-generate based on GitHub & profile)..."
+                    className="w-full px-4 py-2.5 bg-neutral-900 border border-neutral-800 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                  />
+                </div>
+                <div className="text-[11px] text-neutral-500 flex items-center justify-between">
+                  <span>Optional: Enter quick notes or leave blank for full AI auto-generation.</span>
+                  {answers[idx]?.trim() && (
+                    <button
+                      type="button"
+                      onClick={() => setAnswers({ ...answers, [idx]: "" })}
+                      className="text-neutral-400 hover:text-neutral-200 underline"
+                    >
+                      Clear text
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
 
