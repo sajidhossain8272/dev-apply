@@ -214,7 +214,7 @@ export async function PUT(request: Request) {
 
   try {
     const json = await request.json();
-    const { name, handle, birthYear, birthDate, phone, availability, theme } = json;
+    const { name, handle, birthYear, phone, availability, theme } = json;
 
     if (handle) {
       const existingWithHandle = await prisma.user.findFirst({
@@ -238,7 +238,6 @@ export async function PUT(request: Request) {
         ...(name !== undefined && { name }),
         ...(handle !== undefined && { handle }),
         ...(birthYear !== undefined && { birthYear: birthYear ? Number(birthYear) : null }),
-        ...(birthDate !== undefined && { birthDate: birthDate || null }),
         ...(phone !== undefined && { phone: phone || null }),
         settings: {
           upsert: {

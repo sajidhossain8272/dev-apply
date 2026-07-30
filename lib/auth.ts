@@ -40,18 +40,6 @@ export const authOptions: NextAuthOptions = {
       }
       if (account?.access_token) {
         token.accessToken = account.access_token;
-        const userId = user?.id || (token.id as string);
-        if (userId) {
-          prisma.user
-            .update({
-              where: { id: userId },
-              data: {
-                githubAccessToken: account.access_token,
-                ...(profile && (profile as any).login ? { githubUsername: (profile as any).login } : {}),
-              },
-            })
-            .catch(() => {});
-        }
       }
       return token;
     },
