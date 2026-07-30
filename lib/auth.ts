@@ -13,31 +13,42 @@ export const authOptions: NextAuthOptions = {
     GithubProvider({
       clientId: process.env.GITHUB_ID!,
       clientSecret: process.env.GITHUB_SECRET!,
+      allowDangerousEmailAccountLinking: true,
       profile(profile) {
         return {
           id: String(profile.id),
           name: profile.name ?? profile.login,
-          email: profile.email,
+          email: profile.email || `${profile.login}@users.noreply.github.com`,
           image: profile.avatar_url,
+          handle: profile.login,
+          githubUsername: profile.login,
         };
       },
     }),
   ],
   callbacks: {
-    async jwt({ token, account, user }) {
+    async redirect({ url, baseUrl }) {
+      if (url.includes("error=")) return `${baseUrl}/dashboard`;
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      if (new URL(url).origin === baseUrl) return url;
+      return `${baseUrl}/dashboard`;
+    },
+    async jwt({ token, account, user, profile }) {
       if (user) {
         token.id = user.id;
-        token.handle = (user as any).handle ?? null;
+        token.handle = (user as any).handle || (profile as any)?.login || null;
       }
       if (account?.access_token) {
         token.accessToken = account.access_token;
-        // Asynchronously store token without blocking OAuth callback
         const userId = user?.id || (token.id as string);
         if (userId) {
           prisma.user
             .update({
               where: { id: userId },
-              data: { githubAccessToken: account.access_token },
+              data: {
+                githubAccessToken: account.access_token,
+                ...(profile && (profile as any).login ? { githubUsername: (profile as any).login } : {}),
+              },
             })
             .catch(() => {});
         }
