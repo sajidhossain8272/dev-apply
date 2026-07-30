@@ -31,6 +31,16 @@ export const authOptions: NextAuthOptions = {
       }
       if (account?.access_token) {
         token.accessToken = account.access_token;
+        // Asynchronously store token without blocking OAuth callback
+        const userId = user?.id || (token.id as string);
+        if (userId) {
+          prisma.user
+            .update({
+              where: { id: userId },
+              data: { githubAccessToken: account.access_token },
+            })
+            .catch(() => {});
+        }
       }
       return token;
     },
@@ -41,19 +51,7 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
-    async signIn({ user, account }) {
-      if (account?.provider === "github" && account.access_token) {
-        try {
-          await prisma.user.update({
-            where: { id: user.id },
-            data: {
-              githubAccessToken: account.access_token,
-            },
-          });
-        } catch (e) {
-          console.error("Error saving github access token on signin:", e);
-        }
-      }
+    async signIn() {
       return true;
     },
   },
@@ -73,6 +71,7 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: "/",
+    error: "/",
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || "dev-apply-super-secret-key-32-chars-min",
 };
