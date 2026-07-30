@@ -204,3 +204,68 @@ export async function POST(request: Request) {
 
   return NextResponse.json({ user });
 }
+
+export async function PUT(request: Request) {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.id) {
+    return new NextResponse("Unauthorized", { status: 401 });
+  }
+
+  try {
+    const json = await request.json();
+    const { name, handle, birthYear, birthDate, phone, availability, theme } = json;
+
+    if (handle) {
+      const existingWithHandle = await prisma.user.findFirst({
+        where: {
+          handle,
+          NOT: { id: session.user.id },
+        },
+      });
+
+      if (existingWithHandle) {
+        return NextResponse.json(
+          { error: "Handle already taken by another user" },
+          { status: 409 }
+        );
+      }
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: session.user.id },
+      data: {
+        ...(name !== undefined && { name }),
+        ...(handle !== undefined && { handle }),
+        ...(birthYear !== undefined && { birthYear: birthYear ? Number(birthYear) : null }),
+        ...(birthDate !== undefined && { birthDate: birthDate || null }),
+        ...(phone !== undefined && { phone: phone || null }),
+        settings: {
+          upsert: {
+            create: {
+              availability: availability || "OPEN",
+              theme: theme || "dark",
+            },
+            update: {
+              ...(availability && { availability }),
+              ...(theme && { theme }),
+            },
+          },
+        },
+      },
+      include: {
+        profile: true,
+        settings: true,
+      },
+    });
+
+    return NextResponse.json({ user: updatedUser });
+  } catch (err: any) {
+    console.error("Error updating settings via PUT /api/profile:", err);
+    return NextResponse.json(
+      { error: err.message || "Failed to update profile settings" },
+      { status: 500 }
+    );
+  }
+}
+

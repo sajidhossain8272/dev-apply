@@ -17,6 +17,7 @@ export default function DashboardPage() {
   // Settings State
   const [name, setName] = useState("");
   const [handle, setHandle] = useState("");
+  const [birthDate, setBirthDate] = useState("");
   const [birthYear, setBirthYear] = useState<number | "">("");
   const [phone, setPhone] = useState("");
   const [availability, setAvailability] = useState<"OPEN" | "BUSY" | "NOT_LOOKING">("OPEN");
@@ -42,6 +43,7 @@ export default function DashboardPage() {
 
       setName(user.name || "");
       setHandle(user.handle || "");
+      setBirthDate(user.birthDate || (user.birthYear ? `${user.birthYear}-01` : ""));
       setBirthYear(user.birthYear || "");
       setPhone(user.phone || "");
       setAvailability(user.settings?.availability || "OPEN");
@@ -74,6 +76,7 @@ export default function DashboardPage() {
         body: JSON.stringify({
           name,
           handle,
+          birthDate,
           birthYear: birthYear ? Number(birthYear) : null,
           phone,
           availability,
@@ -280,13 +283,23 @@ export default function DashboardPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-neutral-300 mb-2">Birth Year (Optional)</label>
+                <label className="block text-xs font-semibold text-neutral-300 mb-2">
+                  Date of Birth (Month & Year Calendar)
+                </label>
                 <input
-                  type="number"
-                  value={birthYear}
-                  onChange={(e) => setBirthYear(e.target.value ? parseInt(e.target.value) : "")}
-                  placeholder="e.g. 2000"
-                  className="w-full px-4 py-2.5 bg-neutral-900 border border-neutral-800 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500"
+                  type="month"
+                  value={birthDate}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setBirthDate(val);
+                    if (val) {
+                      const yr = parseInt(val.split("-")[0]);
+                      if (!isNaN(yr)) setBirthYear(yr);
+                    } else {
+                      setBirthYear("");
+                    }
+                  }}
+                  className="w-full px-4 py-2.5 bg-neutral-900 border border-neutral-800 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500 [color-scheme:dark]"
                 />
               </div>
 
