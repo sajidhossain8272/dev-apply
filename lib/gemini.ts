@@ -278,3 +278,202 @@ Instructions:
   return text.trim();
 }
 
+/**
+ * Extract structured profile data from fetched external portfolio website text (HTML/Text) or uploaded PDF text.
+ */
+export async function extractProfileFromWebText(rawText: string): Promise<any> {
+  const truncatedText = rawText.slice(0, 15000); // Pass first 15k chars for token safety
+  const prompt = `
+You are an expert developer profile parser. Analyze the text content extracted from an external portfolio website or resume document below:
+
+Text Content:
+"${truncatedText}"
+
+Task:
+Extract and parse all developer details into a clean JSON structure.
+
+Return ONLY a JSON object in this exact format:
+{
+  "name": "Developer Name if present or null",
+  "headline": "Title / Tagline (e.g. Software Developer & Web3 Engineer)",
+  "bio": "Comprehensive biography or summary paragraph",
+  "location": "Location if present",
+  "email": "Email if present",
+  "githubUrl": "GitHub link if present",
+  "linkedinUrl": "LinkedIn link if present",
+  "websiteUrl": "Website link if present",
+  "skills": [
+    { "category": "Languages & Frameworks", "items": ["React", "Next.js", "TypeScript"] },
+    { "category": "Tools & Platforms", "items": ["Node.js", "Prisma", "Git"] }
+  ],
+  "services": [
+    { "title": "Fullstack Web Apps", "description": "Building high-performance, responsive web applications." }
+  ],
+  "experiences": [
+    {
+      "company": "Company Name",
+      "title": "Role Title",
+      "location": "Location",
+      "startDate": "Date",
+      "endDate": "Date",
+      "description": "Description of work and key accomplishments"
+    }
+  ],
+  "projects": [
+    {
+      "name": "Project Name",
+      "description": "Project summary",
+      "url": "Live URL or GitHub URL",
+      "techStack": "React, Next.js, Tailwind"
+    }
+  ]
+}
+`.trim();
+
+  const rawJson = await callGeminiApi(prompt, "extraction", true);
+  try {
+    return JSON.parse(rawJson);
+  } catch (err) {
+    console.error("Failed to parse extracted portfolio JSON from Gemini:", rawJson);
+    return {};
+  }
+}
+
+/**
+ * Generate 3-5 kind, tailored AI portfolio questions to discover unique stories, services, and achievements.
+ */
+export async function generatePortfolioQuestions(params: {
+  profile?: any;
+  githubRepos?: any[];
+  extractedContext?: any;
+}): Promise<{ questions: { question: string; category: string; hint?: string }[] }> {
+  const prompt = `
+You are a warm, supportive technical branding consultant helping a developer build a stunning portfolio showcase.
+
+Developer Context:
+- Current Profile: ${JSON.stringify(params.profile || {})}
+- Extracted External Data (if any): ${JSON.stringify(params.extractedContext || {})}
+- Public Repositories (sample): ${JSON.stringify((params.githubRepos || []).slice(0, 6))}
+
+Goal:
+Generate 3 to 5 encouraging, personalized questions to help the developer highlight:
+1. What specialized services or technical solutions they provide to clients or companies.
+2. The core story or impact behind their top projects.
+3. What drives them as an engineer and what tech stack they enjoy working with most.
+
+Return ONLY a JSON object in this format:
+{
+  "questions": [
+    {
+      "question": "Warm, encouraging question text...",
+      "category": "Services / Key Project / Engineering Vision",
+      "hint": "Optional tip or example..."
+    }
+  ]
+}
+`.trim();
+
+  const rawJson = await callGeminiApi(prompt, "questionnaire", true);
+  try {
+    return JSON.parse(rawJson);
+  } catch (err) {
+    return {
+      questions: [
+        {
+          question: "What core services or technical solutions do you specialize in offering?",
+          category: "Services",
+          hint: "E.g. Fullstack Web Apps, API Development, UI Design, DevOps.",
+        },
+        {
+          question: "Which of your projects best showcases your technical skills and why?",
+          category: "Key Project",
+          hint: "Describe the challenge, tools used, and final impact.",
+        },
+      ],
+    };
+  }
+}
+
+/**
+ * Synthesize complete developer portfolio schema combining profile, GitHub data, questionnaire Q&A, and extracted URL context.
+ */
+export async function synthesizePortfolioData(params: {
+  existingProfile: any;
+  githubRepos: any[];
+  questionAnswers: { question: string; category?: string; answer: string }[];
+  extractedContext?: any;
+}): Promise<any> {
+  const prompt = `
+You are an expert AI portfolio architect. Your job is to synthesize all available data into a high-impact, professional developer portfolio schema.
+
+Input Data:
+- Existing Profile: ${JSON.stringify(params.existingProfile || {})}
+- GitHub Repositories: ${JSON.stringify((params.githubRepos || []).slice(0, 10))}
+- User's Answers to AI Questionnaire: ${JSON.stringify(params.questionAnswers || [])}
+- Extracted External Portfolio/PDF Context: ${JSON.stringify(params.extractedContext || {})}
+
+Instructions:
+1. Synthesize a comprehensive developer portfolio payload.
+2. Formulate a compelling headline, rich biography, categorized skills, services offered, key projects, and experience highlights.
+3. Return ONLY a valid JSON object matching this structure:
+
+{
+  "headline": "Crisp headline (e.g. Fullstack Engineer & Open Source Creator)",
+  "bio": "Engaging biography paragraph emphasizing technical expertise and background",
+  "location": "Location",
+  "currentRole": "Current Role Title",
+  "currentCompany": "Current Company",
+  "githubUrl": "https://github.com/...",
+  "linkedinUrl": "https://linkedin.com/in/...",
+  "websiteUrl": "https://...",
+  "twitterUrl": "https://twitter.com/...",
+  "services": [
+    { "title": "Fullstack Web Development", "description": "Building scalable React & Next.js applications." },
+    { "title": "API & Backend Systems", "description": "Architecting robust Node.js, Prisma, and PostgreSQL backends." }
+  ],
+  "skills": [
+    { "name": "TypeScript", "level": "Expert" },
+    { "name": "React", "level": "Expert" },
+    { "name": "Next.js", "level": "Advanced" },
+    { "name": "Node.js", "level": "Advanced" },
+    { "name": "PostgreSQL", "level": "Intermediate" }
+  ],
+  "projects": [
+    {
+      "name": "Project Name",
+      "description": "Compelling project description highlighting feature set and tech stack",
+      "url": "https://...",
+      "techStack": "Next.js, TypeScript, Tailwind CSS",
+      "highlight": true
+    }
+  ],
+  "experiences": [
+    {
+      "company": "Company Name",
+      "title": "Title",
+      "location": "Location",
+      "startDate": "Oct 2024",
+      "endDate": "Present",
+      "isCurrent": true,
+      "description": "Summary of role and key impact delivered."
+    }
+  ],
+  "customSections": [
+    {
+      "title": "Featured Highlights & Certifications",
+      "content": "Key achievements or specialized milestones."
+    }
+  ]
+}
+`.trim();
+
+  const rawJson = await callGeminiApi(prompt, "synthesis", true);
+  try {
+    return JSON.parse(rawJson);
+  } catch (err) {
+    console.error("Failed to parse synthesized portfolio JSON:", rawJson);
+    throw new Error("AI portfolio synthesis returned invalid JSON formatting.");
+  }
+}
+
+

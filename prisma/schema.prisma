@@ -20,6 +20,8 @@ model User {
   emailVerified DateTime?
   image         String?
   handle        String?   @unique
+  birthYear     Int?
+  phone         String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -38,30 +40,35 @@ model User {
 }
 
 model Profile {
-  id             String       @id @default(cuid())
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId         String       @unique
+  id                   String       @id @default(cuid())
+  user                 User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId               String       @unique
 
-  headline       String?
-  bio            String?
-  location       String?
-  currentCompany String?
-  currentRole    String?
+  headline             String?
+  bio                  String?
+  location             String?
+  currentCompany       String?
+  currentRole          String?
 
-  githubUrl      String?
-  linkedinUrl    String?
-  websiteUrl     String?
-  twitterUrl     String?
+  githubUrl            String?
+  linkedinUrl          String?
+  websiteUrl           String?
+  twitterUrl           String?
+  externalPortfolioUrl String?
+  pdfTextContext       String?
 
-  isPublic       Boolean      @default(true)
+  services             Json?        // Array of services offered e.g. [{ title, description, icon }]
+  customSections       Json?        // Array of custom sections e.g. [{ title, content }]
 
-  experiences    Experience[]
-  projects       Project[]
-  skills         Skill[]
-  snapshots      ProfileSnapshot[]
+  isPublic             Boolean      @default(true)
 
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  experiences          Experience[]
+  projects             Project[]
+  skills               Skill[]
+  snapshots            ProfileSnapshot[]
+
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
 }
 
 model Experience {

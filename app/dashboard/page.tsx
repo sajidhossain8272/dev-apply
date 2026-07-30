@@ -5,110 +5,49 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useSession, signIn } from "next-auth/react";
 import { Button } from "@/components/ui/Button";
-import { PortfolioCLI } from "@/components/dashboard/PortfolioCLI";
 import { SiteHeader } from "@/components/layout/SiteHeader";
-import type {
-  ProfileInput,
-  ExperienceInput,
-  ProjectInput,
-  SkillInput,
-} from "@/lib/types";
-
-const emptyProfile: ProfileInput = {
-  name: "",
-  handle: "",
-  headline: "",
-  bio: "",
-  location: "",
-  currentCompany: "",
-  currentRole: "",
-  availability: "OPEN",
-  theme: "dark",
-  links: {
-    github: "",
-    linkedin: "",
-    website: "",
-    twitter: "",
-  },
-  experiences: [],
-  projects: [],
-  skills: [],
-};
 
 export default function DashboardPage() {
-  const { data: session, status } = useSession();
-  const [profile, setProfile] = useState<ProfileInput>(emptyProfile);
+  const { status } = useSession();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+
+  // Settings State
+  const [name, setName] = useState("");
+  const [handle, setHandle] = useState("");
+  const [birthYear, setBirthYear] = useState<number | "">("");
+  const [phone, setPhone] = useState("");
+  const [availability, setAvailability] = useState<"OPEN" | "BUSY" | "NOT_LOOKING">("OPEN");
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
 
   // GitHub Integration State
   const [githubConnected, setGithubConnected] = useState(false);
   const [githubUsername, setGithubUsername] = useState<string | null>(null);
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
   const [syncing, setSyncing] = useState(false);
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
 
   const loadProfile = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch("/api/profile");
-      if (!res.ok) throw new Error("Failed to load profile context");
+      if (!res.ok) throw new Error("Failed to load account settings");
       const data = await res.json();
       const user = data.user;
-      const p = user.profile;
 
       setGithubConnected(!!user.githubAccessToken || (user.accounts && user.accounts.length > 0));
       setLastSyncedAt(user.lastGithubSyncAt);
       setGithubUsername(user.githubUsername);
 
-      const mapped: ProfileInput = {
-        name: user.name ?? "",
-        handle: user.handle ?? "",
-        headline: p?.headline ?? "",
-        bio: p?.bio ?? "",
-        location: p?.location ?? "",
-        currentCompany: p?.currentCompany ?? "",
-        currentRole: p?.currentRole ?? "",
-        availability: user.settings?.availability ?? "OPEN",
-        theme: user.settings?.theme ?? "dark",
-        links: {
-          github: p?.githubUrl ?? "",
-          linkedin: p?.linkedinUrl ?? "",
-          website: p?.websiteUrl ?? "",
-          twitter: p?.twitterUrl ?? "",
-        },
-        experiences:
-          p?.experiences?.map((exp: any): ExperienceInput => ({
-            id: exp.id,
-            company: exp.company,
-            title: exp.title,
-            location: exp.location ?? "",
-            startDate: exp.startDate?.slice(0, 10),
-            endDate: exp.endDate ? exp.endDate.slice(0, 10) : null,
-            isCurrent: exp.isCurrent,
-            description: exp.description ?? "",
-          })) ?? [],
-        projects:
-          p?.projects?.map((proj: any): ProjectInput => ({
-            id: proj.id,
-            name: proj.name,
-            description: proj.description ?? "",
-            url: proj.url ?? "",
-            highlight: proj.highlight,
-            techStack: proj.techStack ?? "",
-          })) ?? [],
-        skills:
-          p?.skills?.map((s: any): SkillInput => ({
-            id: s.id,
-            name: s.name,
-            level: s.level ?? "",
-          })) ?? [],
-      };
-      setProfile(mapped);
+      setName(user.name || "");
+      setHandle(user.handle || "");
+      setBirthYear(user.birthYear || "");
+      setPhone(user.phone || "");
+      setAvailability(user.settings?.availability || "OPEN");
+      setTheme(user.settings?.theme || "dark");
     } catch (err: any) {
-      setError(err.message || "Failed to initialize profile connection");
+      setError(err.message || "Failed to initialize settings connection");
     } finally {
       setLoading(false);
     }
@@ -122,409 +61,291 @@ export default function DashboardPage() {
     }
   }, [status, loadProfile]);
 
-  const toggleTheme = () => {
-    const newTheme = theme === "dark" ? "light" : "dark";
-    setTheme(newTheme);
-    setProfile(prev => ({ ...prev, theme: newTheme }));
-    document.documentElement.setAttribute("data-theme", newTheme);
-  };
-
-  const handleCLICommand = async (command: string) => {
+  const handleSaveSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
-      const res = await fetch("/api/cli", {
-        method: "POST",
-        body: JSON.stringify({ command }),
-      });
-      const data = await res.json();
+      setSaving(true);
+      setError(null);
+      setMessage(null);
 
-      if (data.response === "CLEAR_SIGNAL") {
-        return "CONSOLE BUFFER PURGED.";
-      }
-
-      const cmd = command.toLowerCase().split(" ")[0];
-      if (cmd === "sync" || cmd === "rollback") {
-        await loadProfile();
-      }
-
-      return data.response;
-    } catch (e) {
-      return "ERROR: COMMUNICATIONS FAILURE WITH ENGINE.";
-    }
-  };
-
-  const handleFieldChange = (field: keyof ProfileInput, value: any) => {
-    setProfile((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const updateLink = (key: keyof ProfileInput["links"], value: string) => {
-    setProfile((prev) => ({
-      ...prev,
-      links: { ...prev.links, [key]: value },
-    }));
-  };
-
-  const addExperience = () => {
-    const iso = new Date().toISOString().slice(0, 10);
-    setProfile((prev) => ({
-      ...prev,
-      experiences: [
-        ...prev.experiences,
-        { company: "", title: "", location: "", startDate: iso, endDate: null, isCurrent: true, description: "" },
-      ],
-    }));
-  };
-
-  const updateExperience = (index: number, patch: Partial<ExperienceInput>) => {
-    setProfile((prev) => {
-      const copy = [...prev.experiences];
-      copy[index] = { ...copy[index], ...patch };
-      return { ...prev, experiences: copy };
-    });
-  };
-
-  const removeExperience = (index: number) => {
-    setProfile((prev) => {
-      const copy = [...prev.experiences];
-      copy.splice(index, 1);
-      return { ...prev, experiences: copy };
-    });
-  };
-
-  const addProject = () => {
-    setProfile((prev) => ({
-      ...prev,
-      projects: [...prev.projects, { name: "", description: "", url: "", highlight: false, techStack: "" }],
-    }));
-  };
-
-  const updateProject = (index: number, patch: Partial<ProjectInput>) => {
-    setProfile((prev) => {
-      const copy = [...prev.projects];
-      copy[index] = { ...copy[index], ...patch };
-      return { ...prev, projects: copy };
-    });
-  };
-
-  const removeProject = (index: number) => {
-    setProfile((prev) => {
-      const copy = [...prev.projects];
-      copy.splice(index, 1);
-      return { ...prev, projects: copy };
-    });
-  };
-
-  const addSkill = () => {
-    setProfile((prev) => ({
-      ...prev,
-      skills: [...prev.skills, { name: "", level: "" }],
-    }));
-  };
-
-  const updateSkill = (index: number, patch: Partial<SkillInput>) => {
-    setProfile((prev) => {
-      const copy = [...prev.skills];
-      copy[index] = { ...copy[index], ...patch };
-      return { ...prev, skills: copy };
-    });
-  };
-
-  const removeSkill = (index: number) => {
-    setProfile((prev) => {
-      const copy = [...prev.skills];
-      copy.splice(index, 1);
-      return { ...prev, skills: copy };
-    });
-  };
-
-  const handleGitHubSync = async () => {
-    setError(null);
-    setMessage(null);
-    setSyncing(true);
-    try {
-      const res = await fetch("/api/github/sync", { method: "POST" });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to sync GitHub");
-      setMessage(`Sync Success! Imported ${data.repoCount} projects.`);
-      await loadProfile();
-    } catch (err: any) {
-      setError(err.message ?? "Failed to sync GitHub");
-    } finally {
-      setSyncing(false);
-    }
-  };
-
-  const handleSave = async () => {
-    setError(null);
-    setMessage(null);
-    setSaving(true);
-    try {
       const res = await fetch("/api/profile", {
-        method: "POST",
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(profile),
+        body: JSON.stringify({
+          name,
+          handle,
+          birthYear: birthYear ? Number(birthYear) : null,
+          phone,
+          availability,
+          theme,
+        }),
       });
+
       if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        throw new Error(data?.error ?? "Failed to commit changes");
+        const data = await res.json();
+        throw new Error(data.error || "Failed to update settings");
       }
-      setMessage("Success: Profile deployed and versioned.");
+
+      setMessage("Account settings updated successfully!");
     } catch (err: any) {
-      setError(err.message ?? "Failed to save");
+      setError(err.message || "Error saving settings");
     } finally {
       setSaving(false);
     }
   };
 
+  const handleSyncGithub = async () => {
+    try {
+      setSyncing(true);
+      setError(null);
+      setMessage(null);
+
+      const res = await fetch("/api/github/sync", { method: "POST" });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to sync GitHub data");
+      }
+
+      const data = await res.json();
+      setMessage(`GitHub synced! Imported ${data.repoCount} repositories.`);
+      loadProfile();
+    } catch (err: any) {
+      setError(err.message || "GitHub sync failed");
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  if (status === "loading" || loading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+      </div>
+    );
+  }
+
   if (status === "unauthenticated") {
     return (
-      <div className="flex flex-col items-center justify-center py-32 text-center space-y-8">
-        <h1 className="text-4xl font-black uppercase tracking-tighter text-[var(--fg)]">Access Denied</h1>
-        <p className="text-[var(--muted)] max-w-sm">Connect your GitHub account to manage your professional identity.</p>
-        <Button onClick={() => signIn("github")}>Authorize GitHub</Button>
+      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6 text-center">
+        <h1 className="text-3xl font-extrabold mb-4">Welcome to Dev-Apply</h1>
+        <p className="text-sm text-neutral-400 mb-8 max-w-md">
+          Sign in to access your Developer Dashboard, AI Portfolio Studio, and AI Resume Studio.
+        </p>
+        <Button onClick={() => signIn("github")} className="bg-emerald-400 text-black font-bold px-6 py-3">
+          Sign In with GitHub
+        </Button>
       </div>
     );
   }
-
-  if (loading || status === "loading") {
-    return (
-      <div className="py-32 text-center">
-        <span className="text-xs font-black uppercase tracking-[0.5em] animate-pulse">Initializing...</span>
-      </div>
-    );
-  }
-
-  const publicUrl = profile.handle && `/u/${profile.handle}`;
 
   return (
-    <>
+    <div className="min-h-screen bg-black text-white selection:bg-emerald-500 selection:text-black">
       <SiteHeader />
-      <main className="mx-auto min-h-screen max-w-5xl px-4 py-10">
-        <div className="space-y-12 pb-20">
-          <header className="space-y-4 border-b border-[var(--border)] pb-12">
-            <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-              <div className="space-y-1">
-                <h1 className="text-4xl font-bold tracking-tighter uppercase text-[var(--fg)]">Command Center</h1>
-                <p className="text-sm font-medium text-[var(--muted)] uppercase tracking-widest">Profile Configuration</p>
-              </div>
-              <div className="flex items-center gap-4">
-                <Button variant="outline" className="h-10 text-[10px]" onClick={toggleTheme}>
-                  {theme === "dark" ? "LIGHT MODE" : "DARK MODE"}
-                </Button>
-                <Link href="/dashboard/versions">
-                  <Button variant="outline" className="h-10 text-[10px]">Version History</Button>
-                </Link>
-                {publicUrl && (
-                  <a href={publicUrl} target="_blank" className="no-underline">
-                    <Button variant="outline" className="h-10">Preview Portfolio</Button>
-                  </a>
+
+      <main className="max-w-6xl mx-auto px-6 py-12 space-y-12">
+        {/* Header */}
+        <div className="border-b border-neutral-800 pb-8">
+          <h1 className="text-3xl font-extrabold tracking-tight text-neutral-100">
+            Developer Navigation & Account Settings
+          </h1>
+          <p className="text-sm text-neutral-400 mt-1">
+            Manage your personal profile settings or launch our dedicated AI Studios.
+          </p>
+        </div>
+
+        {error && (
+          <div className="p-4 bg-red-950/60 border border-red-800 rounded-xl text-red-200 text-sm">
+            <strong>Error:</strong> {error}
+          </div>
+        )}
+
+        {message && (
+          <div className="p-4 bg-emerald-950/60 border border-emerald-800 rounded-xl text-emerald-200 text-sm">
+            {message}
+          </div>
+        )}
+
+        {/* AI Studios Navigation Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* AI Portfolio Studio Card */}
+          <Link
+            href="/dashboard/portfolio"
+            className="p-6 bg-gradient-to-br from-neutral-900 via-neutral-900 to-emerald-950/40 border border-neutral-800 hover:border-emerald-500/50 rounded-2xl transition-all duration-300 group shadow-xl hover:shadow-emerald-500/10 space-y-4"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                Studio 1
+              </span>
+              <span className="text-xs text-emerald-400 group-hover:translate-x-1 transition-transform font-bold">
+                Launch Studio ↗
+              </span>
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white group-hover:text-emerald-400 transition-colors">
+                🚀 AI Portfolio Studio
+              </h2>
+              <p className="text-xs text-neutral-400 mt-2 leading-relaxed">
+                Build & enhance your live public portfolio. Extract experience from external URLs (like your live site), paste PDF text, sync GitHub repos, and showcase custom services.
+              </p>
+            </div>
+            <div className="pt-2 text-[11px] text-neutral-500 font-mono">
+              Features: External URL Extractor • GitHub Sync • Custom Services • Public Page /u/{handle || "slug"}
+            </div>
+          </Link>
+
+          {/* AI Resume Studio Card */}
+          <Link
+            href="/dashboard/resume"
+            className="p-6 bg-gradient-to-br from-neutral-900 via-neutral-900 to-emerald-950/40 border border-neutral-800 hover:border-emerald-500/50 rounded-2xl transition-all duration-300 group shadow-xl hover:shadow-emerald-500/10 space-y-4"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                Studio 2
+              </span>
+              <span className="text-xs text-emerald-400 group-hover:translate-x-1 transition-transform font-bold">
+                Launch Studio ↗
+              </span>
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white group-hover:text-emerald-400 transition-colors">
+                📄 AI Resume Studio
+              </h2>
+              <p className="text-xs text-neutral-400 mt-2 leading-relaxed">
+                Generate ATS-friendly downloadable engineering resumes in Modern Tech & Compact Minimalist layouts with print and PDF export support.
+              </p>
+            </div>
+            <div className="pt-2 text-[11px] text-neutral-500 font-mono">
+              Features: Multi-Model Gemini Pipeline • PDF & Print Export • Dedicated URLs per Style
+            </div>
+          </Link>
+        </div>
+
+        {/* Account Settings Form */}
+        <div className="bg-neutral-950 border border-neutral-800 rounded-2xl p-8 space-y-6">
+          <div className="border-b border-neutral-800 pb-4 flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-bold text-white">Account & Personal Settings</h3>
+              <p className="text-xs text-neutral-400">
+                Manage basic account identity, contact information, and availability status.
+              </p>
+            </div>
+            {githubConnected && (
+              <button
+                type="button"
+                onClick={handleSyncGithub}
+                disabled={syncing}
+                className="px-3.5 py-1.5 text-xs font-bold text-neutral-300 bg-neutral-900 border border-neutral-700 rounded-lg hover:bg-neutral-800 transition-colors disabled:opacity-50 flex items-center gap-1.5"
+              >
+                {syncing ? (
+                  <>
+                    <span className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full"></span>
+                    Syncing...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+                    </svg>
+                    Sync GitHub Data
+                  </>
                 )}
-                <Button onClick={handleSave} disabled={saving} className="h-10">
-                  {saving ? "Deploying..." : "Save Changes"}
-                </Button>
-              </div>
-            </div>
-
-            {(!profile.handle || !profile.bio) && (
-              <div className="mt-8 border border-[var(--fg)] p-4 flex items-center justify-between">
-                <span className="text-[10px] font-black uppercase tracking-widest text-[#ff3333]">Attention Required</span>
-                <span className="text-[10px] text-[var(--muted)] uppercase">Handle and Bio are necessary for public deployment</span>
-              </div>
+              </button>
             )}
-          </header>
-
-          {/* Advanced Shell Interface */}
-          <section className="space-y-4">
-            <div className="flex items-center gap-4">
-              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--muted)]">Advanced Shell</h2>
-              <div className="h-[1px] flex-1 bg-[var(--border)]" />
-            </div>
-            <PortfolioCLI onCommand={handleCLICommand} />
-          </section>
-
-          {error && <div className="border border-[var(--fg)] p-4 text-[10px] font-bold uppercase text-[var(--fg)]">{error}</div>}
-          {message && <div className="border border-[var(--border)] p-4 text-[10px] font-bold uppercase text-[var(--muted)]">{message}</div>}
-
-          <div className="grid grid-cols-1 gap-20">
-            {/* GitHub Command */}
-            <section className="space-y-8">
-              <div className="flex items-center gap-4">
-                <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--muted)]">GitHub Source</h2>
-                <div className="h-[1px] flex-1 bg-[var(--border)]" />
-              </div>
-              <div className="flex flex-col justify-between gap-6 border border-[var(--border)] p-8 sm:flex-row sm:items-center bg-[var(--surface)]">
-                <div className="space-y-2">
-                  <h3 className="text-lg font-bold uppercase text-[var(--fg)]">{githubConnected ? (githubUsername || "ENGINE CONNECTED") : "NOT CONNECTED"}</h3>
-                  <p className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-widest">
-                    {lastSyncedAt ? `Last Sync: ${new Date(lastSyncedAt).toLocaleString()}` : "Automatic sync recommended"}
-                  </p>
-                </div>
-                <div className="flex gap-4">
-                  <Button onClick={handleGitHubSync} disabled={syncing} variant="outline">
-                    {syncing ? "Syncing..." : "Force Re-Sync"}
-                  </Button>
-                </div>
-              </div>
-            </section>
-
-            {/* Basic Intelligence */}
-            <section className="space-y-8">
-              <div className="flex items-center gap-4">
-                <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--muted)]">Core Metadata</h2>
-                <div className="h-[1px] flex-1 bg-[var(--border)]" />
-              </div>
-              <div className="grid gap-12 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-[var(--muted)]">Legal Name</label>
-                  <input
-                    className="w-full bg-transparent border-b border-[var(--border)] py-2 outline-none focus:border-[var(--fg)] transition-colors text-[var(--fg)]"
-                    value={profile.name}
-                    onChange={(e) => handleFieldChange("name", e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-[var(--muted)]">Public Handle</label>
-                  <input
-                    className="w-full bg-transparent border-b border-[var(--border)] py-2 outline-none focus:border-[var(--fg)] transition-colors text-[var(--fg)]"
-                    value={profile.handle}
-                    onChange={(e) => handleFieldChange("handle", e.target.value)}
-                    placeholder="Unique ID"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--muted)]">Professional Headline</label>
-                <input
-                  className="w-full bg-transparent border-b border-[var(--border)] py-2 outline-none focus:border-[var(--fg)] transition-colors text-[var(--fg)]"
-                  value={profile.headline ?? ""}
-                  onChange={(e) => handleFieldChange("headline", e.target.value)}
-                  placeholder="e.g. SYSTEMS ARCHITECT // FULL STACK"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--muted)]">Biography</label>
-                <textarea
-                  className="w-full bg-transparent border border-[var(--border)] p-4 min-h-[160px] outline-none focus:border-[var(--fg)] transition-colors resize-none text-[var(--fg)]"
-                  value={profile.bio ?? ""}
-                  onChange={(e) => handleFieldChange("bio", e.target.value)}
-                />
-              </div>
-            </section>
-
-            {/* Professional History */}
-            <section className="space-y-8">
-              <div className="flex items-center justify-between gap-4">
-                <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--muted)]">Professional History</h2>
-                <Button onClick={addExperience} variant="ghost" className="h-8 text-[10px]">+ Add Entry</Button>
-              </div>
-              <div className="space-y-12">
-                {profile.experiences.map((exp, index) => (
-                  <div key={index} className="group relative border-l border-[var(--border)] pl-8 transition-colors hover:border-[var(--fg)]">
-                    <button
-                      onClick={() => removeExperience(index)}
-                      className="absolute -right-4 top-0 text-[10px] font-black uppercase text-[var(--muted)] hover:text-[#ff3333] transition-colors"
-                    >
-                      Delete
-                    </button>
-                    <div className="grid gap-8 sm:grid-cols-2">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-[var(--muted)]">Organization</label>
-                        <input
-                          className="w-full bg-transparent border-b border-[var(--border)] py-2 outline-none focus:border-[var(--fg)] transition-colors text-[var(--fg)]"
-                          value={exp.company}
-                          onChange={(e) => updateExperience(index, { company: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-[var(--muted)]">Role Title</label>
-                        <input
-                          className="w-full bg-transparent border-b border-[var(--border)] py-2 outline-none focus:border-[var(--fg)] transition-colors text-[var(--fg)]"
-                          value={exp.title}
-                          onChange={(e) => updateExperience(index, { title: e.target.value })}
-                        />
-                      </div>
-                    </div>
-                    <div className="mt-8 space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-[var(--muted)]">Impact Summary</label>
-                      <textarea
-                        className="w-full bg-transparent border-b border-[var(--border)] py-2 outline-none focus:border-[var(--fg)] transition-colors resize-none text-[var(--fg)]"
-                        value={exp.description ?? ""}
-                        onChange={(e) => updateExperience(index, { description: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* Intelligence Assets */}
-            <section className="space-y-8">
-              <div className="flex items-center justify-between gap-4">
-                <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--muted)]">Project Assets</h2>
-                <Button onClick={addProject} variant="ghost" className="h-8 text-[10px]">+ Add Asset</Button>
-              </div>
-              <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
-                {profile.projects.map((proj, index) => (
-                  <div key={index} className="border border-[var(--border)] p-8 space-y-6 relative hover:border-[var(--fg)] transition-colors bg-[var(--surface)]">
-                    <button
-                      onClick={() => removeProject(index)}
-                      className="absolute right-4 top-4 text-[10px] font-black uppercase text-[var(--muted)] hover:text-[#ff3333]"
-                    >
-                      ×
-                    </button>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-[var(--muted)]">Name</label>
-                      <input
-                        className="w-full bg-transparent border-b border-[var(--border)] py-1 outline-none text-sm font-bold uppercase text-[var(--fg)]"
-                        value={proj.name}
-                        onChange={(e) => updateProject(index, { name: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-[var(--muted)]">Description</label>
-                      <textarea
-                        className="w-full bg-transparent border-b border-[var(--border)] py-1 outline-none text-xs text-[var(--muted)] resize-none h-12"
-                        value={proj.description ?? ""}
-                        onChange={(e) => updateProject(index, { description: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* Skills */}
-            <section className="space-y-8">
-              <div className="flex items-center justify-between gap-4">
-                <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--muted)]">Skills</h2>
-                <Button onClick={addSkill} variant="ghost" className="h-8 text-[10px]">+ Add Skill</Button>
-              </div>
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                {profile.skills.map((skill, index) => (
-                  <div key={index} className="border border-[var(--border)] p-4 relative group bg-[var(--surface)]">
-                    <button
-                      onClick={() => removeSkill(index)}
-                      className="absolute right-2 top-2 text-[8px] font-black uppercase text-[var(--muted)] hover:text-[#ff3333]"
-                    >
-                      ×
-                    </button>
-                    <input
-                      className="w-full bg-transparent border-b border-[var(--border)] py-1 outline-none text-[10px] font-bold uppercase text-[var(--fg)]"
-                      value={skill.name}
-                      onChange={(e) => updateSkill(index, { name: e.target.value })}
-                    />
-                  </div>
-                ))}
-              </div>
-            </section>
           </div>
 
-          <footer className="pt-20 border-t border-[var(--border)]">
-            <Button onClick={handleSave} disabled={saving} className="w-full h-16 text-sm">
-              {saving ? "Deploying Changes..." : "Commit All Updates"}
-            </Button>
-          </footer>
+          <form onSubmit={handleSaveSettings} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-xs font-semibold text-neutral-300 mb-2">Full Name</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Sajid Hossain"
+                  className="w-full px-4 py-2.5 bg-neutral-900 border border-neutral-800 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-neutral-300 mb-2">
+                  Public Handle / Username
+                </label>
+                <input
+                  type="text"
+                  value={handle}
+                  onChange={(e) => setHandle(e.target.value)}
+                  placeholder="e.g. sajidhossain"
+                  className="w-full px-4 py-2.5 bg-neutral-900 border border-neutral-800 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-neutral-300 mb-2">Birth Year (Optional)</label>
+                <input
+                  type="number"
+                  value={birthYear}
+                  onChange={(e) => setBirthYear(e.target.value ? parseInt(e.target.value) : "")}
+                  placeholder="e.g. 2000"
+                  className="w-full px-4 py-2.5 bg-neutral-900 border border-neutral-800 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-neutral-300 mb-2">Phone Number (Optional)</label>
+                <input
+                  type="text"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="e.g. +8801329530468"
+                  className="w-full px-4 py-2.5 bg-neutral-900 border border-neutral-800 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-neutral-300 mb-2">
+                  Job Availability Status
+                </label>
+                <select
+                  value={availability}
+                  onChange={(e) => setAvailability(e.target.value as any)}
+                  className="w-full px-4 py-2.5 bg-neutral-900 border border-neutral-800 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500"
+                >
+                  <option value="OPEN">Available for New Opportunities (Open)</option>
+                  <option value="BUSY">Busy / Employed</option>
+                  <option value="NOT_LOOKING">Not Looking</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-neutral-300 mb-2">Theme Mode</label>
+                <select
+                  value={theme}
+                  onChange={(e) => setTheme(e.target.value as any)}
+                  className="w-full px-4 py-2.5 bg-neutral-900 border border-neutral-800 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500"
+                >
+                  <option value="dark">Dark Theme (Default)</option>
+                  <option value="light">Light Theme</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-4 border-t border-neutral-800">
+              <div className="text-xs text-neutral-500">
+                {lastSyncedAt
+                  ? `Last GitHub sync: ${new Date(lastSyncedAt).toLocaleString()}`
+                  : "GitHub account connected"}
+              </div>
+              <button
+                type="submit"
+                disabled={saving}
+                className="px-6 py-2.5 text-xs font-bold text-black bg-emerald-400 rounded-lg hover:bg-emerald-300 transition-colors shadow-lg shadow-emerald-500/20 disabled:opacity-50"
+              >
+                {saving ? "Saving Settings..." : "Save Settings"}
+              </button>
+            </div>
+          </form>
         </div>
       </main>
-    </>
+    </div>
   );
 }

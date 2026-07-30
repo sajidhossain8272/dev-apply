@@ -25,6 +25,11 @@ export function SiteHeader() {
                   Dashboard
                 </span>
               </Link>
+              <Link href="/dashboard/portfolio">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 hover:text-emerald-300 transition-colors">
+                  AI Portfolio Studio
+                </span>
+              </Link>
               <Link href="/dashboard/resume">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 hover:text-emerald-300 transition-colors">
                   AI Resume Studio

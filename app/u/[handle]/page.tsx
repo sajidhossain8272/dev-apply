@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import React from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
@@ -117,6 +118,39 @@ export default async function PublicProfilePage(props: PageProps) {
                 {profile.bio || "No biography provided."}
               </p>
             </div>
+
+            {/* Services Offered Section */}
+            {(profile as any).services && Array.isArray((profile as any).services) && (profile as any).services.length > 0 && (
+              <>
+                <aside className="space-y-2">
+                  <h2 id="services" className="text-xs font-black uppercase tracking-[0.3em] text-[var(--muted)]">Services</h2>
+                </aside>
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  {((profile as any).services as any[]).map((srv, idx) => (
+                    <div key={idx} className="border border-[var(--border)] p-6 bg-[var(--surface)] space-y-2">
+                      <h3 className="text-base font-bold text-[var(--fg)]">{srv.title}</h3>
+                      <p className="text-xs leading-relaxed text-[var(--muted)]">{srv.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {/* Custom Sections / Highlights */}
+            {(profile as any).customSections && Array.isArray((profile as any).customSections) && (profile as any).customSections.length > 0 && (
+              <>
+                {((profile as any).customSections as any[]).map((sec, idx) => (
+                  <React.Fragment key={idx}>
+                    <aside className="space-y-2">
+                      <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--muted)]">{sec.title || "Highlights"}</h2>
+                    </aside>
+                    <div className="space-y-4">
+                      <p className="text-base leading-relaxed text-[var(--muted)]">{sec.content}</p>
+                    </div>
+                  </React.Fragment>
+                ))}
+              </>
+            )}
 
             {/* Experience Section */}
             {profile.experiences.length > 0 && (
