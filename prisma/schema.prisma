@@ -34,6 +34,7 @@ model User {
   settings      UserSettings?
   repositories  Repository[]
   contributions GitHubContribution[]
+  resumes       Resume[]
 }
 
 model Profile {
@@ -207,3 +208,41 @@ model GitHubContribution {
   
   @@unique([userId, date])
 }
+
+enum ResumeTemplateStyle {
+  SAJID_STANDARD
+  MEHRAB_MINIMAL
+}
+
+model Resume {
+  id            String              @id @default(cuid())
+  userId        String
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slug          String              @unique
+  title         String              @default("My Resume")
+  templateStyle ResumeTemplateStyle @default(SAJID_STANDARD)
+  isPublic      Boolean             @default(true)
+
+  // Stored JSON payload of full resume content
+  content       Json
+
+  questions     ResumeQuestion[]
+
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@index([userId])
+}
+
+model ResumeQuestion {
+  id        String   @id @default(cuid())
+  resumeId  String
+  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  question  String
+  category  String?
+  answer    String?
+  createdAt DateTime @default(now())
+
+  @@index([resumeId])
+}
+

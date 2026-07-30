@@ -19,11 +19,18 @@ export function SiteHeader() {
 
         <nav className="flex items-center gap-6">
           {session?.user && (
-            <Link href="/dashboard">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted)] hover:text-[var(--fg)] transition-colors">
-                Dashboard
-              </span>
-            </Link>
+            <>
+              <Link href="/dashboard">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted)] hover:text-[var(--fg)] transition-colors">
+                  Dashboard
+                </span>
+              </Link>
+              <Link href="/dashboard/resume">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 hover:text-emerald-300 transition-colors">
+                  AI Resume Studio
+                </span>
+              </Link>
+            </>
           )}
 
           {status === "loading" && (
