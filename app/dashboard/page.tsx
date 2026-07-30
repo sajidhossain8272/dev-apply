@@ -129,7 +129,7 @@ export default function DashboardPage() {
       <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6 text-center">
         <h1 className="text-3xl font-extrabold mb-4">Welcome to Dev-Apply</h1>
         <p className="text-sm text-neutral-400 mb-8 max-w-md">
-          Sign in to access your Developer Dashboard, AI Portfolio Studio, and AI Resume Studio.
+          Sign in to access your Developer Dashboard, Portfolio Builder, and Resume Studio.
         </p>
         <Button onClick={() => signIn("github")} className="bg-emerald-400 text-black font-bold px-6 py-3">
           Sign In with GitHub
@@ -149,7 +149,7 @@ export default function DashboardPage() {
             Developer Navigation & Account Settings
           </h1>
           <p className="text-sm text-neutral-400 mt-1">
-            Manage your personal profile settings or launch our dedicated AI Studios.
+            Manage your personal profile settings or launch your Portfolio Builder and Resume Studio.
           </p>
         </div>
 
@@ -165,24 +165,24 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* AI Studios Navigation Cards */}
+        {/* Navigation Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* AI Portfolio Studio Card */}
+          {/* Portfolio Builder Card */}
           <Link
             href="/dashboard/portfolio"
             className="p-6 bg-gradient-to-br from-neutral-900 via-neutral-900 to-emerald-950/40 border border-neutral-800 hover:border-emerald-500/50 rounded-2xl transition-all duration-300 group shadow-xl hover:shadow-emerald-500/10 space-y-4"
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                Studio 1
+                Builder
               </span>
               <span className="text-xs text-emerald-400 group-hover:translate-x-1 transition-transform font-bold">
-                Launch Studio ↗
+                Launch Builder ↗
               </span>
             </div>
             <div>
               <h2 className="text-2xl font-bold text-white group-hover:text-emerald-400 transition-colors">
-                🚀 AI Portfolio Studio
+                🚀 Portfolio Builder
               </h2>
               <p className="text-xs text-neutral-400 mt-2 leading-relaxed">
                 Build & enhance your live public portfolio. Extract experience from external URLs (like your live site), paste PDF text, sync GitHub repos, and showcase custom services.
@@ -193,14 +193,14 @@ export default function DashboardPage() {
             </div>
           </Link>
 
-          {/* AI Resume Studio Card */}
+          {/* Resume Studio Card */}
           <Link
             href="/dashboard/resume"
             className="p-6 bg-gradient-to-br from-neutral-900 via-neutral-900 to-emerald-950/40 border border-neutral-800 hover:border-emerald-500/50 rounded-2xl transition-all duration-300 group shadow-xl hover:shadow-emerald-500/10 space-y-4"
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                Studio 2
+                Studio
               </span>
               <span className="text-xs text-emerald-400 group-hover:translate-x-1 transition-transform font-bold">
                 Launch Studio ↗
@@ -208,7 +208,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <h2 className="text-2xl font-bold text-white group-hover:text-emerald-400 transition-colors">
-                📄 AI Resume Studio
+                📄 Resume Studio
               </h2>
               <p className="text-xs text-neutral-400 mt-2 leading-relaxed">
                 Generate ATS-friendly downloadable engineering resumes in Modern Tech & Compact Minimalist layouts with print and PDF export support.

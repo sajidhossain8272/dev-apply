@@ -27,12 +27,12 @@ export function SiteHeader() {
               </Link>
               <Link href="/dashboard/portfolio">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 hover:text-emerald-300 transition-colors">
-                  AI Portfolio Studio
+                  Portfolio Builder
                 </span>
               </Link>
               <Link href="/dashboard/resume">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 hover:text-emerald-300 transition-colors">
-                  AI Resume Studio
+                  Resume Studio
                 </span>
               </Link>
             </>

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { SiteHeader } from "@/components/layout/SiteHeader";
+import { ExtractedContextPreview } from "@/components/dashboard/ExtractedContextPreview";
 
 interface QuestionItem {
   question: string;
@@ -206,12 +207,12 @@ export default function PortfolioStudioPage() {
           <div>
             <div className="flex items-center gap-3">
               <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                AI Portfolio Studio
+                Portfolio Builder
               </span>
               <span className="text-xs text-neutral-400">Gemini 3.6 Flash / 3.1 Flash Lite Pipeline</span>
             </div>
             <h1 className="text-3xl font-extrabold tracking-tight mt-2 text-neutral-100">
-              Developer Portfolio Studio
+              Portfolio Builder
             </h1>
             <p className="text-sm text-neutral-400 mt-1">
               Extract context from external portfolio links, PDF text, and GitHub repos to build your live developer portfolio page.
@@ -316,16 +317,7 @@ export default function PortfolioStudioPage() {
 
               {/* Extracted Context Preview */}
               {extractedContext && (
-                <div className="p-4 bg-neutral-900/80 border border-emerald-500/30 rounded-xl space-y-2">
-                  <span className="text-xs font-bold text-emerald-400 uppercase">
-                    ✓ AI Extracted Context Preview
-                  </span>
-                  <div className="text-xs text-neutral-300 space-y-1">
-                    {extractedContext.headline && <div><strong>Headline:</strong> {extractedContext.headline}</div>}
-                    {extractedContext.services && <div><strong>Services Found:</strong> {extractedContext.services.length} services</div>}
-                    {extractedContext.projects && <div><strong>Projects Found:</strong> {extractedContext.projects.length} projects</div>}
-                  </div>
-                </div>
+                <ExtractedContextPreview data={extractedContext} />
               )}
 
               <div className="pt-4 border-t border-neutral-800 flex items-center justify-between">

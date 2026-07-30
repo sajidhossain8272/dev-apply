@@ -186,12 +186,12 @@ export default function ResumeBuilderPage() {
           <div>
             <div className="flex items-center gap-3">
               <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                AI Powered Resume Engine
+                Resume Studio
               </span>
               <span className="text-xs text-neutral-400">Gemini 3.6 Flash / 3.1 Flash Lite Pipeline</span>
             </div>
             <h1 className="text-3xl font-extrabold tracking-tight mt-2 text-neutral-100">
-              Developer Resume Studio
+              Resume Studio
             </h1>
             <p className="text-sm text-neutral-400 mt-1">
               Generate ATS-friendly resumes styled in Modern Tech & Compact Minimalist layouts using AI and GitHub context.
