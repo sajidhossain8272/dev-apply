@@ -5,6 +5,11 @@ import { prisma } from "./prisma";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
+  session: {
+    strategy: "database",
+    maxAge: 30 * 24 * 60 * 60, // 30 Days (Keep logged in until explicit logout)
+    updateAge: 24 * 60 * 60, // 24 Hours refresh interval
+  },
   providers: [
     GithubProvider({
       clientId: process.env.GITHUB_ID!,

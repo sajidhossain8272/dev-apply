@@ -1,11 +1,38 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useSession, signIn } from "next-auth/react";
 import { Button } from "@/components/ui/Button";
-import Link from "next/link";
-import { signIn } from "next-auth/react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 
 export default function HomePage() {
+  const { status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.replace("/dashboard");
+    }
+  }, [status, router]);
+
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+      </div>
+    );
+  }
+
+  if (status === "authenticated") {
+    return (
+      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center space-y-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+        <p className="text-xs text-neutral-400 font-mono">Redirecting to Dashboard...</p>
+      </div>
+    );
+  }
+
   return (
     <>
       <SiteHeader />
@@ -38,11 +65,13 @@ export default function HomePage() {
               >
                 Connect GitHub
               </Button>
-              <Link href="/dashboard" className="w-full sm:w-auto">
-                <Button variant="outline" className="w-full">
-                  Enter Dashboard
-                </Button>
-              </Link>
+              <Button
+                variant="outline"
+                className="w-full sm:w-auto"
+                onClick={() => signIn("github", { callbackUrl: "/dashboard" })}
+              >
+                Enter Dashboard
+              </Button>
             </div>
 
             <div className="grid grid-cols-1 gap-12 pt-20 text-left sm:grid-cols-3">
