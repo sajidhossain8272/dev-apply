@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { ExtractedContextPreview } from "@/components/dashboard/ExtractedContextPreview";
+import { extractTextFromPdf } from "@/lib/pdf-extract";
 
 interface QuestionItem {
   question: string;
@@ -22,6 +23,9 @@ export default function PortfolioStudioPage() {
   const [pdfTextContext, setPdfTextContext] = useState("");
   const [extractedContext, setExtractedContext] = useState<any | null>(null);
   const [extractingUrl, setExtractingUrl] = useState(false);
+  const [pdfFileName, setPdfFileName] = useState<string | null>(null);
+  const [extractingPdf, setExtractingPdf] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
 
   // Questionnaire State
   const [questions, setQuestions] = useState<QuestionItem[]>([]);
@@ -55,6 +59,38 @@ export default function PortfolioStudioPage() {
       }
     } catch (err) {
       console.error("Failed to load profile:", err);
+    }
+  };
+
+  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== "application/pdf") {
+      setPdfError("Please upload a PDF file.");
+      return;
+    }
+
+    try {
+      setExtractingPdf(true);
+      setPdfError(null);
+      setPdfFileName(file.name);
+
+      const text = await extractTextFromPdf(file);
+      if (text.trim()) {
+        setPdfTextContext(text);
+        setMessage(`Extracted text from "${file.name}" — review and edit below, then click "Extract with AI".`);
+      } else {
+        setPdfError("No readable text found in this PDF. It may be a scanned image.");
+      }
+    } catch (err: any) {
+      console.error("PDF extraction error:", err);
+      setPdfError(err.message || "Failed to extract text from PDF.");
+      setPdfFileName(null);
+    } finally {
+      setExtractingPdf(false);
+      // Reset the input so the same file can be re-selected
+      e.target.value = "";
     }
   };
 
@@ -306,13 +342,64 @@ export default function PortfolioStudioPage() {
                 <label className="block text-xs font-bold text-emerald-400 uppercase tracking-wider">
                   Option B: PDF / Resume Text Context (Optional)
                 </label>
+
+                {/* PDF Upload Button */}
+                <div className="flex items-center gap-3 flex-wrap">
+                  <label
+                    className={`inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-emerald-300 bg-emerald-950/80 border border-emerald-500/40 rounded-lg hover:bg-emerald-900 transition-all cursor-pointer ${
+                      extractingPdf ? "opacity-50 pointer-events-none" : ""
+                    }`}
+                  >
+                    {extractingPdf ? (
+                      <>
+                        <span className="animate-spin h-3.5 w-3.5 border-2 border-emerald-400 border-t-transparent rounded-full"></span>
+                        Extracting PDF...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        Upload PDF File
+                      </>
+                    )}
+                    <input
+                      type="file"
+                      accept=".pdf,application/pdf"
+                      className="hidden"
+                      onChange={handlePdfUpload}
+                      disabled={extractingPdf}
+                    />
+                  </label>
+                  {pdfFileName && !extractingPdf && (
+                    <span className="text-xs text-neutral-400 flex items-center gap-1.5">
+                      <svg className="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      {pdfFileName}
+                    </span>
+                  )}
+                </div>
+
+                {pdfError && (
+                  <p className="text-[11px] text-red-400 flex items-center gap-1">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {pdfError}
+                  </p>
+                )}
+
                 <textarea
                   rows={4}
                   value={pdfTextContext}
                   onChange={(e) => setPdfTextContext(e.target.value)}
-                  placeholder="Paste text from your PDF resume or portfolio document here..."
+                  placeholder="Upload a PDF above to auto-extract text, or paste text from your resume/portfolio document here..."
                   className="w-full px-4 py-2.5 bg-neutral-900 border border-neutral-800 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors"
                 />
+                <p className="text-[11px] text-neutral-500">
+                  Upload a PDF resume or paste text manually — Gemini will parse skills, experience, projects, and services from it.
+                </p>
               </div>
 
               {/* Extracted Context Preview */}
