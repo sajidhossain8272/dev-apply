@@ -94,7 +94,7 @@ export async function generateResumeQuestions(params: {
   repos?: any[];
 }): Promise<{ questions: { question: string; category: string; hint?: string }[] }> {
   const prompt = `
-You are an encouraging, expert career coach and AI assistant helping a software developer build an ATS-friendly, highly compelling resume styled cleanly like top engineering resumes (Sajid Hossain & Mehrab Hossain style).
+You are an encouraging, expert career coach and AI assistant helping a software developer build an ATS-friendly, highly compelling resume styled cleanly like top engineering resumes (Modern Tech & Compact Minimalist style).
 
 Analyze the developer's profile and GitHub data below:
 - Name: ${params.name || "Developer"}

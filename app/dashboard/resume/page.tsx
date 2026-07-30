@@ -193,7 +193,7 @@ export default function ResumeBuilderPage() {
               Developer Resume Studio
             </h1>
             <p className="text-sm text-neutral-400 mt-1">
-              Generate ATS-friendly resumes styled after Sajid Hossain & Mehrab Hossain templates using AI and GitHub context.
+              Generate ATS-friendly resumes styled in Modern Tech & Compact Minimalist layouts using AI and GitHub context.
             </p>
           </div>
 
@@ -236,7 +236,7 @@ export default function ResumeBuilderPage() {
         {step === "intro" && (
           <div className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Sajid Hossain Template Card */}
+              {/* Modern Tech Standard Template Card */}
               <div
                 onClick={() => setTemplateStyle("SAJID_STANDARD")}
                 className={`p-6 rounded-2xl border transition-all cursor-pointer ${
@@ -255,7 +255,7 @@ export default function ResumeBuilderPage() {
                     </span>
                   )}
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">Sajid Hossain (Standard)</h3>
+                <h3 className="text-xl font-bold text-white mb-2">Modern Tech (Standard)</h3>
                 <p className="text-xs text-neutral-400 leading-relaxed mb-4">
                   Comprehensive engineering layout featuring uppercase headers, detailed project links (Website & Repository), structured experience bullets, and two-column bottom layout.
                 </p>
@@ -264,7 +264,7 @@ export default function ResumeBuilderPage() {
                 </div>
               </div>
 
-              {/* Mehrab Hossain Template Card */}
+              {/* Compact Minimalist Template Card */}
               <div
                 onClick={() => setTemplateStyle("MEHRAB_MINIMAL")}
                 className={`p-6 rounded-2xl border transition-all cursor-pointer ${
@@ -283,9 +283,9 @@ export default function ResumeBuilderPage() {
                     </span>
                   )}
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">Mehrab Hossain (Low-Profile)</h3>
+                <h3 className="text-xl font-bold text-white mb-2">Compact (Minimalist)</h3>
                 <p className="text-xs text-neutral-400 leading-relaxed mb-4">
-                  High-density, low-profile clean single-page format. Optimized for rapid recruiter scans, tight line heights, and compact skill listings.
+                  High-density, clean single-page format. Optimized for rapid recruiter scans, tight line heights, and compact skill listings.
                 </p>
                 <div className="text-[11px] text-neutral-500 font-mono">
                   Best for: Executive summaries, high-density applications, single-page print.
@@ -310,7 +310,7 @@ export default function ResumeBuilderPage() {
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-semibold text-emerald-400">
-                          {r.templateStyle === "MEHRAB_MINIMAL" ? "Mehrab Minimal" : "Sajid Standard"}
+                          {r.templateStyle === "MEHRAB_MINIMAL" ? "Compact Minimalist" : "Modern Tech Standard"}
                         </span>
                         <span className="text-[10px] text-neutral-500 font-mono">
                           {new Date(r.createdAt).toLocaleDateString()}

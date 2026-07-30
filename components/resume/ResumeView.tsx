@@ -85,7 +85,7 @@ export function ResumeView({
                   : "bg-neutral-800 text-neutral-400 hover:text-white"
               }`}
             >
-              Sajid Hossain (Standard)
+              Modern Tech (Standard)
             </button>
             <button
               onClick={() => onStyleChange?.("MEHRAB_MINIMAL")}
@@ -95,7 +95,7 @@ export function ResumeView({
                   : "bg-neutral-800 text-neutral-400 hover:text-white"
               }`}
             >
-              Mehrab Hossain (Low-Profile)
+              Compact (Minimalist)
             </button>
           </div>
 
