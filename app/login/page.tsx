@@ -76,7 +76,9 @@ export default function LoginPage() {
         {/* Header */}
         <div className="text-center space-y-3">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-2xl font-black mb-2">
-            🚀
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight text-white">
             Welcome to Dev-Apply
@@ -89,12 +91,12 @@ export default function LoginPage() {
         {/* Alerts */}
         {error && (
           <div className="p-4 rounded-xl bg-red-950/40 border border-red-800/60 text-red-300 text-xs font-semibold">
-            ⚠️ {error}
+            {error}
           </div>
         )}
         {message && (
           <div className="p-4 rounded-xl bg-emerald-950/40 border border-emerald-800/60 text-emerald-300 text-xs font-semibold">
-            ✅ {message}
+            {message}
           </div>
         )}
 
@@ -141,7 +143,7 @@ export default function LoginPage() {
                 disabled={sendingOtp || !email.trim()}
                 className="w-full bg-neutral-800 hover:bg-neutral-700 disabled:opacity-50 text-white font-bold text-xs py-3 rounded-xl transition-all"
               >
-                {sendingOtp ? "Sending Verification Code..." : "✉️ Send 6-Digit OTP Code"}
+                {sendingOtp ? "Sending Verification Code..." : "Send 6-Digit OTP Code"}
               </button>
             </form>
           ) : (

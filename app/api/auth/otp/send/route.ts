@@ -45,7 +45,7 @@ export async function POST(request: Request) {
       await transporter.sendMail({
         from: `"Dev-Apply Security" <${smtpUser}>`,
         to: cleanEmail,
-        subject: `🔒 Your Dev-Apply Verification Code: ${otpCode}`,
+        subject: `Your Dev-Apply Verification Code: ${otpCode}`,
         html: `
           <div style="font-family: Arial, sans-serif; background-color: #09090b; color: #f4f4f5; padding: 30px; borderRadius: 12px;">
             <h2 style="color: #10b981; margin-bottom: 8px;">Dev-Apply Account Security</h2>

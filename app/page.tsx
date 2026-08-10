@@ -63,14 +63,14 @@ export default function HomePage() {
                 onClick={() => signIn("github", { callbackUrl: "/dashboard" })}
                 className="w-full sm:w-auto bg-emerald-400 hover:bg-emerald-300 text-black font-extrabold px-8 py-3 rounded-xl"
               >
-                🚀 Connect GitHub (1-Click)
+                Connect GitHub (1-Click)
               </Button>
               <Button
                 variant="outline"
                 className="w-full sm:w-auto font-bold border-neutral-800 hover:border-emerald-500/50 px-8 py-3 rounded-xl"
                 onClick={() => router.push("/login")}
               >
-                ✉️ Sign In with Email & OTP
+                Sign In with Email & OTP
               </Button>
             </div>
 

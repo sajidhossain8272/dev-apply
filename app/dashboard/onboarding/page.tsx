@@ -47,7 +47,7 @@ export default function OnboardingPage() {
 
       {error && (
         <div className="p-4 rounded-xl bg-red-950/40 border border-red-800/60 text-red-300 text-xs font-semibold text-center max-w-md mx-auto">
-          ⚠️ {error}
+          {error}
         </div>
       )}
 
@@ -55,8 +55,10 @@ export default function OnboardingPage() {
         {/* Role 1: Developer (Seller) */}
         <div className="bg-neutral-900/80 border border-neutral-800 hover:border-emerald-500/50 rounded-2xl p-8 space-y-6 flex flex-col justify-between transition-all group">
           <div className="space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-3xl font-bold group-hover:scale-110 transition-transform">
-              👨‍💻
+            <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-2xl font-bold group-hover:scale-110 transition-transform">
+              <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+              </svg>
             </div>
             <div>
               <h2 className="text-xl font-bold text-white">Developer / Engineer</h2>
@@ -88,15 +90,17 @@ export default function OnboardingPage() {
             disabled={loading === "DEVELOPER"}
             className="w-full bg-emerald-400 hover:bg-emerald-300 disabled:opacity-50 text-black font-extrabold text-xs py-3.5 rounded-xl transition-all shadow-lg shadow-emerald-500/10"
           >
-            {loading === "DEVELOPER" ? "Joining as Developer..." : "🚀 Join as Developer"}
+            {loading === "DEVELOPER" ? "Joining as Developer..." : "Join as Developer"}
           </button>
         </div>
 
         {/* Role 2: Client / Employer (Buyer) */}
         <div className="bg-neutral-900/80 border border-neutral-800 hover:border-emerald-500/50 rounded-2xl p-8 space-y-6 flex flex-col justify-between transition-all group">
           <div className="space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-3xl font-bold group-hover:scale-110 transition-transform">
-              🏢
+            <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-2xl font-bold group-hover:scale-110 transition-transform">
+              <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11m0 0h4m-4 0H7m4 0v10" />
+              </svg>
             </div>
             <div>
               <h2 className="text-xl font-bold text-white">Client / Employer</h2>
@@ -128,7 +132,7 @@ export default function OnboardingPage() {
             disabled={loading === "CLIENT"}
             className="w-full bg-neutral-800 hover:bg-neutral-700 disabled:opacity-50 text-white font-extrabold text-xs py-3.5 rounded-xl transition-all"
           >
-            {loading === "CLIENT" ? "Joining as Client..." : "🏢 Join as Client / Employer"}
+            {loading === "CLIENT" ? "Joining as Client..." : "Join as Client / Employer"}
           </button>
         </div>
       </div>

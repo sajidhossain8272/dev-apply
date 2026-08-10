@@ -81,7 +81,7 @@ export default function MarketplacePage() {
 
   const handleApplyToJob = (job: any) => {
     // Redirect to Job Applications Studio and pre-fill JD text
-    const fullJd = `🚀 Hiring: ${job.title} at ${job.company}\n\nType: ${job.type}\nBudget/Salary: ${job.budget || "Competitive"}\nLocation: ${job.location}\n\n${job.description}\n\n📩 Apply: ${job.applyEmail}`;
+    const fullJd = `Hiring: ${job.title} at ${job.company}\n\nType: ${job.type}\nBudget/Salary: ${job.budget || "Competitive"}\nLocation: ${job.location}\n\n${job.description}\n\nApply: ${job.applyEmail}`;
     sessionStorage.setItem("devapply_prefill_jd", fullJd);
     router.push("/dashboard/jobs");
   };
@@ -92,7 +92,7 @@ export default function MarketplacePage() {
       <div className="border-b border-neutral-800 pb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
-            <span>💼 Freelance Tasks & Marketplace Jobs</span>
+            <span>Freelance Tasks & Marketplace Jobs</span>
           </h1>
           <p className="text-sm text-neutral-400 mt-1">
             Browse full-time tech roles and freelance tasks, or post open listings as a client.
@@ -104,7 +104,7 @@ export default function MarketplacePage() {
             onClick={() => setShowPostModal(true)}
             className="bg-emerald-400 hover:bg-emerald-300 text-black font-extrabold text-xs px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-500/10 flex items-center gap-2"
           >
-            <span>➕ Post Job / Freelance Task</span>
+            <span>Post Job / Freelance Task</span>
           </button>
         </div>
       </div>
@@ -112,10 +112,10 @@ export default function MarketplacePage() {
       {/* Filter Tabs */}
       <div className="flex items-center gap-2 border-b border-neutral-800 pb-4 overflow-x-auto">
         {[
-          { id: "ALL", label: "🌐 All Openings" },
-          { id: "FULL_TIME", label: "💼 Full-Time Roles" },
-          { id: "FREELANCE_TASK", label: "⚡ Freelance Tasks" },
-          { id: "CONTRACT", label: "📜 Contract Jobs" },
+          { id: "ALL", label: "All Openings" },
+          { id: "FULL_TIME", label: "Full-Time Roles" },
+          { id: "FREELANCE_TASK", label: "Freelance Tasks" },
+          { id: "CONTRACT", label: "Contract Jobs" },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -134,7 +134,7 @@ export default function MarketplacePage() {
       {/* Notifications */}
       {error && (
         <div className="p-4 rounded-xl bg-red-950/40 border border-red-800/60 text-red-300 text-xs font-semibold">
-          ⚠️ {error}
+          {error}
         </div>
       )}
 
@@ -147,7 +147,6 @@ export default function MarketplacePage() {
         </div>
       ) : jobs.length === 0 ? (
         <div className="p-12 border border-neutral-800 rounded-2xl bg-neutral-900/30 text-center space-y-4">
-          <div className="text-4xl">💼</div>
           <h3 className="text-lg font-bold text-white">No Marketplace Listings Found</h3>
           <p className="text-xs text-neutral-400 max-w-md mx-auto">
             Be the first client to post a freelance engineering task or job opening!
@@ -172,11 +171,11 @@ export default function MarketplacePage() {
                     {job.type.replace("_", " ")}
                   </span>
                   <span className="text-xs text-neutral-400 font-mono">
-                    📍 {job.location || "Remote"}
+                    {job.location || "Remote"}
                   </span>
                   {job.budget && (
                     <span className="text-xs text-emerald-400 font-bold bg-neutral-950 px-2.5 py-0.5 rounded border border-neutral-800">
-                      💰 {job.budget}
+                      Budget: {job.budget}
                     </span>
                   )}
                 </div>
@@ -196,7 +195,7 @@ export default function MarketplacePage() {
                   onClick={() => handleApplyToJob(job)}
                   className="w-full md:w-auto bg-emerald-400 hover:bg-emerald-300 text-black font-extrabold text-xs px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-500/10 whitespace-nowrap"
                 >
-                  🚀 Apply with Dev-Apply
+                  Apply with Dev-Apply
                 </button>
               </div>
             </div>
@@ -210,13 +209,13 @@ export default function MarketplacePage() {
           <div className="bg-neutral-950 border border-neutral-800 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
             <div className="p-5 border-b border-neutral-800 flex items-center justify-between bg-neutral-900/50">
               <h3 className="text-base font-bold text-white">
-                ➕ Post New Job or Freelance Task
+                Post New Job or Freelance Task
               </h3>
               <button
                 onClick={() => setShowPostModal(false)}
                 className="text-xs text-neutral-400 hover:text-white font-bold"
               >
-                ✕ Close
+                Close
               </button>
             </div>
 

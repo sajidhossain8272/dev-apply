@@ -364,7 +364,7 @@ export default function ResumeBuilderPage() {
                         <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
-                        {answers[idx]?.trim() ? "✨ Refine with AI" : "✨ Write with AI"}
+                        {answers[idx]?.trim() ? "Refine with AI" : "Write with AI"}
                       </>
                     )}
                   </button>

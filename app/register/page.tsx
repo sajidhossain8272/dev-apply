@@ -8,7 +8,9 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6 selection:bg-emerald-500 selection:text-black">
       <div className="w-full max-w-md space-y-8 relative z-10 text-center">
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-2xl font-black mb-2">
-          ✨
+          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
         </div>
         <h1 className="text-3xl font-extrabold tracking-tight text-white">
           Create Your Dev-Apply Account
@@ -33,7 +35,7 @@ export default function RegisterPage() {
               href="/login"
               className="block w-full bg-neutral-800 hover:bg-neutral-700 text-white font-bold text-xs py-3 rounded-xl transition-all"
             >
-              ✉️ Register with Email & OTP Code
+              Register with Email & OTP Code
             </Link>
           </div>
         </div>

@@ -126,7 +126,7 @@ export default function SettingsAndSyncPage() {
       <div className="border-b border-neutral-800 pb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
-            <span>⚙️ Settings & Sync Profile</span>
+            <span>Settings & Sync Profile</span>
           </h1>
           <p className="text-sm text-neutral-400 mt-1">
             Manage your account details, switch roles, and sync your GitHub repositories.
@@ -145,7 +145,7 @@ export default function SettingsAndSyncPage() {
             </>
           ) : (
             <>
-              <span>⚡ Sync GitHub Data Now</span>
+              <span>Sync GitHub Data Now</span>
             </>
           )}
         </button>
@@ -154,19 +154,19 @@ export default function SettingsAndSyncPage() {
       {/* Notifications */}
       {error && (
         <div className="p-4 rounded-xl bg-red-950/40 border border-red-800/60 text-red-300 text-xs font-semibold">
-          ⚠️ {error}
+          {error}
         </div>
       )}
       {message && (
         <div className="p-4 rounded-xl bg-emerald-950/40 border border-emerald-800/60 text-emerald-300 text-xs font-semibold">
-          ✅ {message}
+          {message}
         </div>
       )}
 
       {/* GitHub Sync Status Card */}
       <section className="bg-neutral-900/60 border border-neutral-800 rounded-2xl p-6 space-y-4">
         <h2 className="text-lg font-bold text-white flex items-center gap-2">
-          <span>🐙 GitHub Account Integration</span>
+          <span>GitHub Account Integration</span>
         </h2>
         <div className="p-4 rounded-xl bg-neutral-950 border border-neutral-800 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
@@ -195,7 +195,7 @@ export default function SettingsAndSyncPage() {
 
       {/* Profile & Account Settings Form */}
       <form onSubmit={handleSaveProfile} className="bg-neutral-900/60 border border-neutral-800 rounded-2xl p-6 space-y-6">
-        <h2 className="text-lg font-bold text-white">👤 Profile Settings</h2>
+        <h2 className="text-lg font-bold text-white">Profile Settings</h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>

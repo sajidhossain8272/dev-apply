@@ -117,7 +117,7 @@ export default function JobApplicationsPage() {
         <div className="border-b border-neutral-800 pb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
-              <span>🚀 Job Applications Studio</span>
+              <span>Job Applications Studio</span>
             </h1>
             <p className="text-sm text-neutral-400 mt-1">
               Paste any job post (with recipient email like career@penough.com), auto-generate ATS cover letters & emails, and send directly.
@@ -133,7 +133,7 @@ export default function JobApplicationsPage() {
 
         {error && (
           <div className="p-4 rounded-xl bg-red-950/40 border border-red-800/60 text-red-300 text-sm flex items-center justify-between">
-            <span>⚠️ {error}</span>
+            <span>{error}</span>
             <button onClick={() => setError(null)} className="text-xs text-neutral-400 hover:text-white">
               Dismiss
             </button>
@@ -144,7 +144,7 @@ export default function JobApplicationsPage() {
         <section className="bg-neutral-900/60 border border-neutral-800 rounded-2xl p-6 backdrop-blur-sm space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-neutral-100 flex items-center gap-2">
-              <span>📥 Paste Job Description (JD)</span>
+              <span>Paste Job Description (JD)</span>
             </h2>
             <span className="text-xs text-neutral-400">
               Direct email apply supported (e.g. career@penough.com)
@@ -158,9 +158,9 @@ export default function JobApplicationsPage() {
               onChange={(e) => setJdText(e.target.value)}
               placeholder="Paste raw JD post here, e.g.:
 
-🚀 We’re Hiring — Senior Full Stack Developer
+We’re Hiring — Senior Full Stack Developer
 Penough Ltd. is looking for an experienced Senior Full Stack Developer...
-📩 Apply: career@penough.com..."
+Apply: career@penough.com..."
               className="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-4 text-sm text-neutral-200 focus:outline-none focus:border-emerald-500 font-mono transition-colors"
               required
             />
@@ -190,7 +190,7 @@ Penough Ltd. is looking for an experienced Senior Full Stack Developer...
                   </>
                 ) : (
                   <>
-                    <span>🚀 Process & Prepare Application</span>
+                    <span>Process & Prepare Application</span>
                   </>
                 )}
               </button>
@@ -254,15 +254,15 @@ Penough Ltd. is looking for an experienced Senior Full Stack Developer...
                     <div className="flex items-center gap-4 text-xs text-neutral-400 flex-wrap">
                       {app.recipientEmail ? (
                         <span className="text-emerald-400 font-mono flex items-center gap-1">
-                          📩 {app.recipientEmail}
+                          {app.recipientEmail}
                         </span>
                       ) : (
                         <span className="text-neutral-500 font-mono">No direct email found</span>
                       )}
-                      <span>📍 {app.location || "Remote/Unspecified"}</span>
-                      <span>📅 Added: {new Date(app.createdAt).toLocaleDateString()}</span>
+                      <span>{app.location || "Remote/Unspecified"}</span>
+                      <span>Added: {new Date(app.createdAt).toLocaleDateString()}</span>
                       {app.sentAt && (
-                        <span className="text-emerald-400">🚀 Sent: {new Date(app.sentAt).toLocaleDateString()}</span>
+                        <span className="text-emerald-400">Sent: {new Date(app.sentAt).toLocaleDateString()}</span>
                       )}
                     </div>
                   </div>

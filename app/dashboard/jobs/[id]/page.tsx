@@ -178,13 +178,16 @@ export default function JobApplicationDetailPage({
 
       const data = await res.json();
       setApp(data.application);
-      setSuccessMsg(
-        data.simulated
-          ? "Application process completed! (SMTP not configured, email send simulated in logs)."
-          : `🚀 Application email successfully sent to ${recipientEmail}!`
-      );
+      if (res.ok) {
+        setSuccessMsg(
+          data.simulated
+            ? `Application prepared for ${recipientEmail}! (Simulated Mode - Set SMTP in .env to deliver real email)`
+            : `Application email successfully sent to ${recipientEmail}!`
+        );
+        loadApplication();
+      }
     } catch (err: any) {
-      setError(err.message || "Error sending email application");
+      setError(err.message);
     } finally {
       setSending(false);
     }
@@ -192,18 +195,26 @@ export default function JobApplicationDetailPage({
 
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+      <div className="py-20 text-center">
+        <span className="text-xs font-bold text-neutral-400 animate-pulse">
+          Loading Job Application Studio...
+        </span>
       </div>
     );
   }
 
   if (!app) {
     return (
-      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6 text-center">
-        <p className="text-neutral-400 mb-4">Job Application not found.</p>
-        <Link href="/dashboard/jobs" className="text-emerald-400 font-bold hover:underline">
-          ← Back to Job Applications
+      <div className="p-12 border border-neutral-800 rounded-2xl bg-neutral-900/30 text-center space-y-4">
+        <h3 className="text-lg font-bold text-white">Job Application Not Found</h3>
+        <p className="text-xs text-neutral-400">
+          The requested application may have been deleted or does not exist.
+        </p>
+        <Link
+          href="/dashboard/jobs"
+          className="inline-block bg-emerald-400 text-black font-bold text-xs px-5 py-2.5 rounded-xl hover:bg-emerald-300 transition-colors"
+        >
+          Return to Applications List
         </Link>
       </div>
     );
@@ -214,7 +225,7 @@ export default function JobApplicationDetailPage({
         {/* Navigation Breadcrumb */}
         <div className="flex items-center justify-between text-xs text-neutral-400">
           <Link href="/dashboard/jobs" className="hover:text-emerald-400 transition-colors flex items-center gap-1">
-            ← Back to All Applications
+            Back to All Applications
           </Link>
           <span className="font-mono text-neutral-500">App ID: {app.id}</span>
         </div>
@@ -222,7 +233,7 @@ export default function JobApplicationDetailPage({
         {/* Feedback Notifications */}
         {error && (
           <div className="p-4 rounded-xl bg-red-950/40 border border-red-800/60 text-red-300 text-sm flex items-center justify-between">
-            <span>⚠️ {error}</span>
+            <span>{error}</span>
             <button onClick={() => setError(null)} className="text-xs text-neutral-400 hover:text-white">
               Dismiss
             </button>
@@ -230,7 +241,7 @@ export default function JobApplicationDetailPage({
         )}
         {successMsg && (
           <div className="p-4 rounded-xl bg-emerald-950/40 border border-emerald-800/60 text-emerald-300 text-sm flex items-center justify-between">
-            <span>✅ {successMsg}</span>
+            <span>{successMsg}</span>
             <button onClick={() => setSuccessMsg(null)} className="text-xs text-neutral-400 hover:text-white">
               Dismiss
             </button>
@@ -273,7 +284,7 @@ export default function JobApplicationDetailPage({
             {/* Recipient Email & Direct Send Action */}
             <div className="bg-neutral-950 border border-neutral-800 p-4 rounded-xl space-y-3 min-w-[280px]">
               <label className="block text-xs font-bold text-neutral-300">
-                📩 Recipient Email (Apply Address)
+                Recipient Email (Apply Address)
               </label>
               <input
                 type="email"
@@ -295,7 +306,7 @@ export default function JobApplicationDetailPage({
                   </>
                 ) : (
                   <>
-                    <span>🚀 Send Application Email Now</span>
+                    <span>Send Application Email Now</span>
                   </>
                 )}
               </button>
@@ -306,7 +317,7 @@ export default function JobApplicationDetailPage({
         {/* ATS Match Score & Skill Analysis */}
         <section className="bg-neutral-900/60 border border-neutral-800 rounded-2xl p-6 space-y-4">
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <span>🎯 ATS Match Analysis</span>
+            <span>ATS Match Analysis</span>
             <span
               className={`ml-auto text-sm font-mono font-bold px-3 py-1 rounded-full ${
                 app.matchScore >= 80
@@ -344,7 +355,7 @@ export default function JobApplicationDetailPage({
         <section className="bg-neutral-900/60 border border-neutral-800 rounded-2xl p-6 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-lg font-bold text-white">✍️ ATS Humanly Written Cover Letter</h2>
+              <h2 className="text-lg font-bold text-white">ATS Humanly Written Cover Letter</h2>
               <p className="text-xs text-neutral-400">
                 Tailored for {company || "the company"} using your resume and key qualifications.
               </p>
@@ -358,7 +369,7 @@ export default function JobApplicationDetailPage({
                 }}
                 className="bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-400 text-xs font-bold px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5"
               >
-                <span>👁️ Review Cover Letter PDF</span>
+                <span>Review Cover Letter PDF</span>
               </button>
 
               <button
@@ -366,7 +377,7 @@ export default function JobApplicationDetailPage({
                 disabled={saving}
                 className="bg-neutral-800 hover:bg-neutral-700 text-xs font-bold px-3.5 py-2 rounded-lg text-neutral-200 transition-colors flex items-center gap-1.5"
               >
-                <span>🔄 Regenerate with AI</span>
+                <span>Regenerate with AI</span>
               </button>
 
               <button
@@ -390,7 +401,7 @@ export default function JobApplicationDetailPage({
         {/* Resume Option & Optimization Toggle */}
         <section className="bg-neutral-900/60 border border-neutral-800 rounded-2xl p-6 space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-4">
-            <h2 className="text-lg font-bold text-white">📄 Resume Attachment Selection</h2>
+            <h2 className="text-lg font-bold text-white">Resume Attachment Selection</h2>
             <div className="flex items-center gap-4">
               <button
                 onClick={() => {
@@ -399,7 +410,7 @@ export default function JobApplicationDetailPage({
                 }}
                 className="bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-400 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
               >
-                <span>👁️ Review Resume PDF</span>
+                <span>Review Resume PDF</span>
               </button>
 
               <label className="flex items-center gap-3 cursor-pointer select-none">
@@ -429,7 +440,7 @@ export default function JobApplicationDetailPage({
                 }}
                 className="font-mono text-emerald-400 hover:underline flex items-center gap-1"
               >
-                <span>📄</span>
+                <span></span>
                 <span>
                   {optimizeResume
                     ? "Tailored-Optimized-Resume.pdf"
@@ -449,7 +460,7 @@ export default function JobApplicationDetailPage({
         {/* AI Screening Q&A Engine */}
         <section className="bg-neutral-900/60 border border-neutral-800 rounded-2xl p-6 space-y-6">
           <div>
-            <h2 className="text-lg font-bold text-white">🤖 AI Screening Q&A Engine</h2>
+            <h2 className="text-lg font-bold text-white">AI Screening Q&A Engine</h2>
             <p className="text-xs text-neutral-400">
               Ask any application question (e.g. "Describe your experience with Django & React", "Why Penough Ltd.?"). AI generates a personalized reply tailored to your profile + this JD.
             </p>
@@ -507,7 +518,7 @@ export default function JobApplicationDetailPage({
 
         {/* Application Email Preview & Direct Send */}
         <section className="bg-neutral-900/60 border border-neutral-800 rounded-2xl p-6 space-y-4">
-          <h2 className="text-lg font-bold text-white">✉️ Application Email Preview</h2>
+          <h2 className="text-lg font-bold text-white">Application Email Preview</h2>
 
           <div className="space-y-3">
             <div>
@@ -532,7 +543,7 @@ export default function JobApplicationDetailPage({
 
             <div className="flex items-center justify-between pt-2 flex-wrap gap-4">
               <div className="text-xs text-neutral-400 flex items-center gap-2 flex-wrap">
-                <span>📎 PDF Attachments:</span>
+                <span>PDF Attachments:</span>
                 <button
                   type="button"
                   onClick={() => {
@@ -541,7 +552,7 @@ export default function JobApplicationDetailPage({
                   }}
                   className="bg-neutral-900 border border-neutral-800 hover:border-emerald-500/50 text-emerald-400 font-mono px-2.5 py-1 rounded transition-colors flex items-center gap-1"
                 >
-                  <span>📄 Resume.pdf</span>
+                  <span>Resume.pdf</span>
                 </button>
                 <span>+</span>
                 <button
@@ -552,7 +563,7 @@ export default function JobApplicationDetailPage({
                   }}
                   className="bg-neutral-900 border border-neutral-800 hover:border-emerald-500/50 text-emerald-400 font-mono px-2.5 py-1 rounded transition-colors flex items-center gap-1"
                 >
-                  <span>📄 Cover-Letter.pdf</span>
+                  <span>Cover-Letter.pdf</span>
                 </button>
               </div>
 
@@ -561,7 +572,7 @@ export default function JobApplicationDetailPage({
                 disabled={sending || !recipientEmail.trim()}
                 className="bg-emerald-400 hover:bg-emerald-300 disabled:opacity-50 text-black font-bold text-xs px-6 py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-500/10"
               >
-                {sending ? "Sending..." : "🚀 Send Application Now"}
+                {sending ? "Sending..." : "Send Application Now"}
               </button>
             </div>
           </div>
@@ -573,7 +584,7 @@ export default function JobApplicationDetailPage({
             <div className="bg-neutral-950 border border-neutral-800 rounded-2xl w-full max-w-4xl h-[85vh] flex flex-col overflow-hidden shadow-2xl">
               <div className="p-4 border-b border-neutral-800 flex items-center justify-between bg-neutral-900/50">
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <span>📄 {pdfPreviewTitle}</span>
+                  <span>{pdfPreviewTitle}</span>
                 </h3>
                 <div className="flex items-center gap-3">
                   <a
