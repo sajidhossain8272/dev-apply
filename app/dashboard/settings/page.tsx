@@ -193,33 +193,28 @@ export default function SettingsAndSyncPage() {
         </div>
       </section>
 
-      {/* Google / Gmail Integration Card */}
+      {/* Gmail & SMTP Email Dispatch Status Card */}
       <section className="bg-neutral-900/60 border border-neutral-800 rounded-2xl p-6 space-y-4">
         <h2 className="text-lg font-bold text-white flex items-center gap-2">
-          <span>Google & Gmail Integration</span>
+          <span>Email & Application Dispatch Integration</span>
         </h2>
         <div className="p-4 rounded-xl bg-neutral-950 border border-neutral-800 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="font-bold text-neutral-200">Connected Gmail:</span>
+              <span className="font-bold text-neutral-200">Email Delivery Method:</span>
               <span className="font-mono text-emerald-400 font-bold">
-                {profile?.gmailEmail || session?.user?.email || "Not Connected"}
+                Gmail SMTP / Google App Password
               </span>
             </div>
             <p className="text-neutral-400">
-              {profile?.gmailConnectedAt
-                ? `Connected on ${new Date(profile.gmailConnectedAt).toLocaleString()} for direct email sending.`
-                : "Sign in or connect your Google Account to send real job application emails directly from your Gmail."}
+              OTP verification codes and job applications are dispatched directly via your configured Google App Password (GMAIL_USER & GMAIL_APP_PASSWORD).
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={() => signIn("google", { callbackUrl: "/dashboard/settings" })}
-            className="bg-white hover:bg-neutral-200 text-black text-xs font-bold px-4 py-2 rounded-lg transition-colors"
-          >
-            Connect Google Account
-          </button>
+          <div className="inline-flex items-center gap-2 bg-emerald-950/60 border border-emerald-800/60 px-3 py-1.5 rounded-xl text-xs font-semibold text-emerald-400">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>Active & Ready</span>
+          </div>
         </div>
       </section>
 

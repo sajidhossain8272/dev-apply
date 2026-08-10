@@ -30,8 +30,8 @@ export async function POST(request: Request) {
     });
 
     // 4. Send Email via Gmail SMTP / App Password
-    const smtpUser = process.env.SMTP_USER || process.env.EMAIL_SERVER_USER;
-    const smtpPass = process.env.SMTP_PASS || process.env.EMAIL_SERVER_PASSWORD;
+    const smtpUser = process.env.GMAIL_USER || process.env.SMTP_USER || process.env.EMAIL_SERVER_USER;
+    const smtpPass = process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS || process.env.EMAIL_SERVER_PASSWORD;
 
     if (smtpUser && smtpPass) {
       const transporter = nodemailer.createTransport({
