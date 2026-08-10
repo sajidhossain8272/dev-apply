@@ -591,13 +591,23 @@ export default function JobApplicationDetailPage({
                 </button>
               </div>
 
-              <button
-                onClick={handleSendEmail}
-                disabled={sending || !recipientEmail.trim()}
-                className="bg-emerald-400 hover:bg-emerald-300 disabled:opacity-50 text-black font-bold text-xs px-6 py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-500/10"
-              >
-                {sending ? "Sending..." : "Send Application Now"}
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => signIn("google", { callbackUrl: window.location.href })}
+                  className="bg-white hover:bg-neutral-200 text-black font-extrabold text-xs px-4 py-2.5 rounded-xl transition-all"
+                >
+                  <span>Connect Google / Gmail</span>
+                </button>
+
+                <button
+                  onClick={handleSendEmail}
+                  disabled={sending || !recipientEmail.trim()}
+                  className="bg-emerald-400 hover:bg-emerald-300 disabled:opacity-50 text-black font-bold text-xs px-6 py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-500/10"
+                >
+                  {sending ? "Sending..." : "Send Application Now"}
+                </button>
+              </div>
             </div>
           </div>
         </section>

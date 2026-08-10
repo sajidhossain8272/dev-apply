@@ -144,6 +144,11 @@ export async function POST(
       subject,
       body,
       attachments,
+      userGmailCredentials: {
+        email: user?.gmailEmail || user?.email,
+        accessToken: user?.gmailAccessToken,
+        refreshToken: user?.gmailRefreshToken,
+      },
     });
 
     // Update application status in DB to SENT

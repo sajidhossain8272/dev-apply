@@ -1,5 +1,6 @@
 import type { NextAuthOptions } from "next-auth";
 import GithubProvider from "next-auth/providers/github";
+import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "./prisma";
@@ -11,6 +12,27 @@ export const authOptions: NextAuthOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 Days persistent session
   },
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID || "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      allowDangerousEmailAccountLinking: true,
+      authorization: {
+        params: {
+          scope: "openid email profile https://mail.google.com/ https://www.googleapis.com/auth/gmail.send",
+          access_type: "offline",
+          prompt: "consent",
+        },
+      },
+      profile(profile) {
+        return {
+          id: String(profile.sub),
+          name: profile.name,
+          email: profile.email,
+          image: profile.picture,
+          handle: profile.email ? profile.email.split("@")[0] : `user_${profile.sub.slice(-4)}`,
+        };
+      },
+    }),
     GithubProvider({
       clientId: process.env.GITHUB_ID!,
       clientSecret: process.env.GITHUB_SECRET!,
@@ -118,6 +140,22 @@ export const authOptions: NextAuthOptions = {
             });
           } catch (e) {
             console.error("Failed to auto-save githubAccessToken to user:", e);
+          }
+        }
+
+        if (token.id && account.provider === "google") {
+          try {
+            await prisma.user.update({
+              where: { id: token.id as string },
+              data: {
+                gmailAccessToken: account.access_token,
+                gmailRefreshToken: account.refresh_token || undefined,
+                gmailConnectedAt: new Date(),
+                gmailEmail: user?.email || (token.email as string) || undefined,
+              },
+            });
+          } catch (e) {
+            console.error("Failed to auto-save gmailAccessToken to user:", e);
           }
         }
       }

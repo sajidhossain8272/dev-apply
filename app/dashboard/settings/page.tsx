@@ -193,6 +193,36 @@ export default function SettingsAndSyncPage() {
         </div>
       </section>
 
+      {/* Google / Gmail Integration Card */}
+      <section className="bg-neutral-900/60 border border-neutral-800 rounded-2xl p-6 space-y-4">
+        <h2 className="text-lg font-bold text-white flex items-center gap-2">
+          <span>Google & Gmail Integration</span>
+        </h2>
+        <div className="p-4 rounded-xl bg-neutral-950 border border-neutral-800 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-neutral-200">Connected Gmail:</span>
+              <span className="font-mono text-emerald-400 font-bold">
+                {profile?.gmailEmail || session?.user?.email || "Not Connected"}
+              </span>
+            </div>
+            <p className="text-neutral-400">
+              {profile?.gmailConnectedAt
+                ? `Connected on ${new Date(profile.gmailConnectedAt).toLocaleString()} for direct email sending.`
+                : "Sign in or connect your Google Account to send real job application emails directly from your Gmail."}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => signIn("google", { callbackUrl: "/dashboard/settings" })}
+            className="bg-white hover:bg-neutral-200 text-black text-xs font-bold px-4 py-2 rounded-lg transition-colors"
+          >
+            Connect Google Account
+          </button>
+        </div>
+      </section>
+
       {/* Profile & Account Settings Form */}
       <form onSubmit={handleSaveProfile} className="bg-neutral-900/60 border border-neutral-800 rounded-2xl p-6 space-y-6">
         <h2 className="text-lg font-bold text-white">Profile Settings</h2>
