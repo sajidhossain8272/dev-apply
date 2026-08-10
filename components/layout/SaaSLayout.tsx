@@ -15,6 +15,9 @@ export function SaaSLayout({ children }: SaaSLayoutProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
 
+  const userRole = (session?.user as any)?.role || "DEVELOPER";
+
+  // Dynamic Navigation Items per Role
   const navItems = [
     {
       group: "STUDIO APPS",
@@ -27,6 +30,16 @@ export function SaaSLayout({ children }: SaaSLayoutProps) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 00-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
           ),
+        },
+        {
+          name: "Marketplace & Jobs",
+          href: "/dashboard/marketplace",
+          icon: (
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          ),
+          badge: "New",
         },
         {
           name: "Job Applications",
@@ -62,6 +75,17 @@ export function SaaSLayout({ children }: SaaSLayoutProps) {
       group: "MANAGEMENT",
       items: [
         {
+          name: "Settings & Sync Profile",
+          href: "/dashboard/settings",
+          icon: (
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          ),
+          badge: "Sync",
+        },
+        {
           name: "Version History",
           href: "/dashboard/versions",
           icon: (
@@ -76,14 +100,36 @@ export function SaaSLayout({ children }: SaaSLayoutProps) {
 
   // Helper to resolve current page title for top bar
   const getPageTitle = () => {
-    if (pathname === "/dashboard") return "Developer Dashboard";
+    if (pathname === "/dashboard") return `${userRole === "CLIENT" ? "Client / Buyer" : "Developer"} Dashboard`;
     if (pathname.startsWith("/dashboard/jobs/")) return "Job Application Apply Studio";
     if (pathname === "/dashboard/jobs") return "Job Applications Studio";
     if (pathname === "/dashboard/portfolio") return "Portfolio Builder";
     if (pathname === "/dashboard/resume") return "Resume Studio";
+    if (pathname === "/dashboard/marketplace") return "Freelance Tasks & Marketplace Jobs";
+    if (pathname === "/dashboard/settings") return "Settings & Sync Profile";
     if (pathname === "/dashboard/versions") return "Version Control & Snapshots";
     return "SaaS Studio";
   };
+
+  // Strict Protection: Render loading spinner while checking session
+  if (status === "loading") {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-black text-white">
+        <div className="flex flex-col items-center gap-3">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+          <span className="text-xs text-neutral-400 font-mono">Authenticating SaaS OS...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Strict Protection: Unauthenticated visitors redirected to /login
+  if (status === "unauthenticated" || !session) {
+    if (typeof window !== "undefined") {
+      window.location.href = "/login";
+    }
+    return null;
+  }
 
   return (
     <div className="h-screen w-screen flex bg-black text-white overflow-hidden selection:bg-emerald-500 selection:text-black">
@@ -107,7 +153,9 @@ export function SaaSLayout({ children }: SaaSLayoutProps) {
                     PRO
                   </span>
                 </span>
-                <span className="text-[10px] text-neutral-500 font-mono">SaaS Operating System</span>
+                <span className="text-[10px] text-neutral-500 font-mono">
+                  {userRole === "CLIENT" ? "Client Operating System" : "SaaS Operating System"}
+                </span>
               </div>
             )}
           </Link>
@@ -180,30 +228,21 @@ export function SaaSLayout({ children }: SaaSLayoutProps) {
 
         {/* User Card Footer */}
         <div className="p-3 border-t border-neutral-800/80 bg-neutral-950">
-          {session?.user ? (
-            <div className="flex items-center gap-3 p-2 rounded-xl bg-neutral-900/60 border border-neutral-800/60">
-              <div className="h-8 w-8 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-bold text-xs flex items-center justify-center shrink-0">
-                {session.user.name?.charAt(0) || "U"}
-              </div>
-
-              {!collapsed && (
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-neutral-100 truncate">{session.user.name}</p>
-                  <p className="text-[10px] text-emerald-400 font-mono flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    Online
-                  </p>
-                </div>
-              )}
+          <div className="flex items-center gap-3 p-2 rounded-xl bg-neutral-900/60 border border-neutral-800/60">
+            <div className="h-8 w-8 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-bold text-xs flex items-center justify-center shrink-0">
+              {session.user.name?.charAt(0) || "U"}
             </div>
-          ) : (
-            <button
-              onClick={() => signIn("github")}
-              className="w-full bg-emerald-400 hover:bg-emerald-300 text-black font-bold text-xs py-2 rounded-lg transition-colors"
-            >
-              Sign In
-            </button>
-          )}
+
+            {!collapsed && (
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold text-neutral-100 truncate">{session.user.name}</p>
+                <p className="text-[10px] text-emerald-400 font-mono flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  {userRole === "CLIENT" ? "Client Role" : "Developer Role"}
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </aside>
 
@@ -225,14 +264,12 @@ export function SaaSLayout({ children }: SaaSLayoutProps) {
               <span>All SaaS Services Operational</span>
             </div>
 
-            {session?.user && (
-              <button
-                onClick={() => signOut()}
-                className="text-xs font-bold text-neutral-400 hover:text-white bg-neutral-900 border border-neutral-800 hover:border-neutral-700 px-3.5 py-1.5 rounded-lg transition-all"
-              >
-                Log Out
-              </button>
-            )}
+            <button
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              className="text-xs font-bold text-neutral-400 hover:text-white bg-neutral-900 border border-neutral-800 hover:border-neutral-700 px-3.5 py-1.5 rounded-lg transition-all"
+            >
+              Log Out
+            </button>
           </div>
         </header>
 

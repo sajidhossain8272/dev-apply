@@ -58,19 +58,19 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="flex flex-col items-center justify-center gap-6 sm:flex-row">
+            <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Button
                 onClick={() => signIn("github", { callbackUrl: "/dashboard" })}
-                className="w-full sm:w-auto"
+                className="w-full sm:w-auto bg-emerald-400 hover:bg-emerald-300 text-black font-extrabold px-8 py-3 rounded-xl"
               >
-                Connect GitHub
+                🚀 Connect GitHub (1-Click)
               </Button>
               <Button
                 variant="outline"
-                className="w-full sm:w-auto"
-                onClick={() => signIn("github", { callbackUrl: "/dashboard" })}
+                className="w-full sm:w-auto font-bold border-neutral-800 hover:border-emerald-500/50 px-8 py-3 rounded-xl"
+                onClick={() => router.push("/login")}
               >
-                Enter Dashboard
+                ✉️ Sign In with Email & OTP
               </Button>
             </div>
 

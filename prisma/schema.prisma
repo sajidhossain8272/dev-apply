@@ -13,6 +13,11 @@ enum AvailabilityStatus {
   NOT_LOOKING
 }
 
+enum UserRole {
+  DEVELOPER // Seller: Applies to jobs, generates resume & portfolio
+  CLIENT    // Buyer: Posts jobs & freelance tasks, hires developers
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -24,6 +29,10 @@ model User {
   phone         String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  // Dual User Role (Fiverr Seller vs Buyer)
+  role          UserRole?
+  roleSelected  Boolean   @default(false)
 
   // GitHub Integration
   githubAccessToken  String?    // Store GitHub OAuth token
@@ -45,6 +54,7 @@ model User {
   resumes        Resume[]
   jobApplications JobApplication[]
   jobCrawlQueue  JobCrawlQueue[]
+  marketplaceJobs MarketplaceJob[]
 }
 
 model Profile {
@@ -378,6 +388,52 @@ model JobCrawlQueue {
 
   @@index([userId])
   @@index([crawlDate])
+  @@index([status])
+}
+
+// ============================================================
+// EMAIL + OTP AUTHENTICATION MODEL
+// ============================================================
+
+model OtpToken {
+  id        String   @id @default(cuid())
+  email     String
+  code      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
+
+// ============================================================
+// MARKETPLACE & CLIENT JOB / FREELANCE TASK POSTING MODELS
+// ============================================================
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  FREELANCE_TASK
+}
+
+model MarketplaceJob {
+  id          String   @id @default(cuid())
+  postedById  String
+  postedBy    User     @relation(fields: [postedById], references: [id], onDelete: Cascade)
+  title       String
+  company     String
+  type        JobType  @default(FULL_TIME)
+  budget      String?  // e.g. "$500" or "$80k-$100k"
+  location    String?  // e.g. "Remote", "Dhaka, Bangladesh"
+  description String
+  applyEmail  String
+  status      String   @default("OPEN") // OPEN, CLOSED
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([postedById])
+  @@index([type])
   @@index([status])
 }
 

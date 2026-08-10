@@ -1,5 +1,6 @@
 import type { NextAuthOptions } from "next-auth";
 import GithubProvider from "next-auth/providers/github";
+import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "./prisma";
 
@@ -30,10 +31,70 @@ export const authOptions: NextAuthOptions = {
         };
       },
     }),
+    CredentialsProvider({
+      id: "email-otp",
+      name: "Email OTP",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        code: { label: "OTP Code", type: "text" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.code) {
+          throw new Error("Email and OTP code are required.");
+        }
+
+        const email = credentials.email.toLowerCase().trim();
+        const code = credentials.code.trim();
+
+        // 1. Verify OTP token in database
+        const validOtp = await prisma.otpToken.findFirst({
+          where: {
+            email,
+            code,
+            expiresAt: { gt: new Date() },
+          },
+        });
+
+        if (!validOtp) {
+          throw new Error("Invalid or expired OTP code.");
+        }
+
+        // Delete used OTP token
+        await prisma.otpToken.deleteMany({ where: { email } });
+
+        // 2. Find or create user
+        let user = await prisma.user.findUnique({ where: { email } });
+
+        if (!user) {
+          user = await prisma.user.create({
+            data: {
+              email,
+              name: email.split("@")[0],
+              handle: `${email.split("@")[0]}_${Date.now().toString().slice(-4)}`,
+              emailVerified: new Date(),
+              profile: {
+                create: {
+                  headline: "Developer",
+                  isPublic: true,
+                },
+              },
+            },
+          });
+        }
+
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          image: user.image,
+          handle: user.handle,
+        };
+      },
+    }),
   ],
   callbacks: {
     async redirect({ url, baseUrl }) {
-      if (url.includes("error=")) return `${baseUrl}/dashboard`;
+      if (url.includes("error=")) return `${baseUrl}/login`;
       if (url.startsWith("/")) return `${baseUrl}${url}`;
       if (new URL(url).origin === baseUrl) return url;
       return `${baseUrl}/dashboard`;
@@ -46,7 +107,6 @@ export const authOptions: NextAuthOptions = {
       if (account?.access_token) {
         token.accessToken = account.access_token;
 
-        // Auto-sync githubAccessToken & githubUsername to user record in database
         if (token.id && account.provider === "github") {
           try {
             await prisma.user.update({
@@ -61,12 +121,27 @@ export const authOptions: NextAuthOptions = {
           }
         }
       }
+
+      // Fetch user's current role state from database
+      if (token.id) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { role: true, roleSelected: true },
+        });
+        if (dbUser) {
+          token.role = dbUser.role;
+          token.roleSelected = dbUser.roleSelected;
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.handle = (token.handle as string) ?? null;
+        (session.user as any).role = token.role ?? null;
+        (session.user as any).roleSelected = !!token.roleSelected;
       }
       return session;
     },
@@ -89,8 +164,8 @@ export const authOptions: NextAuthOptions = {
     },
   },
   pages: {
-    signIn: "/",
-    error: "/",
+    signIn: "/login",
+    error: "/login",
   },
   secret: process.env.NEXTAUTH_SECRET || "dev-apply-super-secret-key-32-chars-min",
 };
