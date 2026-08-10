@@ -160,15 +160,17 @@ export const authOptions: NextAuthOptions = {
         }
       }
 
-      // Fetch user's current role state from database
+      // Fetch user's current role and gmail state from database
       if (token.id) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
-          select: { role: true, roleSelected: true },
+          select: { role: true, roleSelected: true, gmailAccessToken: true, gmailEmail: true },
         });
         if (dbUser) {
           token.role = dbUser.role;
           token.roleSelected = dbUser.roleSelected;
+          token.gmailConnected = !!dbUser.gmailAccessToken;
+          token.gmailEmail = dbUser.gmailEmail || null;
         }
       }
 
@@ -180,6 +182,8 @@ export const authOptions: NextAuthOptions = {
         session.user.handle = (token.handle as string) ?? null;
         (session.user as any).role = token.role ?? null;
         (session.user as any).roleSelected = !!token.roleSelected;
+        (session.user as any).gmailConnected = !!token.gmailConnected;
+        (session.user as any).gmailEmail = (token.gmailEmail as string) ?? null;
       }
       return session;
     },

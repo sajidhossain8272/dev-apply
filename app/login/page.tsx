@@ -1,12 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const oauthError = searchParams.get("error");
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+
   const [email, setEmail] = useState("");
   const [otpCode, setOtpCode] = useState("");
   const [otpSent, setOtpSent] = useState(false);
@@ -59,7 +63,7 @@ export default function LoginPage() {
         throw new Error(res.error || "Invalid or expired OTP code.");
       }
 
-      router.push("/dashboard");
+      router.push(callbackUrl);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -89,9 +93,15 @@ export default function LoginPage() {
         </div>
 
         {/* Alerts */}
-        {error && (
-          <div className="p-4 rounded-xl bg-red-950/40 border border-red-800/60 text-red-300 text-xs font-semibold">
-            {error}
+        {(error || oauthError) && (
+          <div className="p-4 rounded-xl bg-red-950/40 border border-red-800/60 text-red-300 text-xs font-semibold space-y-1">
+            <p className="font-bold text-red-400">Sign In Error:</p>
+            <p>
+              {error ||
+                (oauthError === "OAuthSignin"
+                  ? "Google OAuth setup required: Ensure GOOGLE_CLIENT_ID & GOOGLE_CLIENT_SECRET are configured in your deployment settings, or sign in via GitHub or Email OTP."
+                  : `OAuth authentication error (${oauthError}). Please try again.`)}
+            </p>
           </div>
         )}
         {message && (
@@ -104,7 +114,7 @@ export default function LoginPage() {
         <div className="bg-neutral-900/80 border border-neutral-800 rounded-2xl p-6 space-y-6 shadow-2xl backdrop-blur-md">
           <div className="space-y-3">
             <button
-              onClick={() => signIn("github", { callbackUrl: "/dashboard" })}
+              onClick={() => signIn("github", { callbackUrl })}
               className="w-full bg-emerald-400 hover:bg-emerald-300 text-black font-extrabold text-sm py-3.5 px-6 rounded-xl transition-all flex items-center justify-center gap-3 shadow-lg shadow-emerald-500/20"
             >
               <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
@@ -114,7 +124,7 @@ export default function LoginPage() {
             </button>
 
             <button
-              onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+              onClick={() => signIn("google", { callbackUrl })}
               className="w-full bg-white hover:bg-neutral-100 text-black font-extrabold text-sm py-3.5 px-6 rounded-xl transition-all flex items-center justify-center gap-3 shadow-lg"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -205,5 +215,13 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-black text-white flex items-center justify-center p-6 text-xs text-neutral-400">Loading Login...</div>}>
+      <LoginContent />
+    </Suspense>
   );
 }

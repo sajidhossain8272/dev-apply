@@ -5,6 +5,10 @@ declare module "next-auth" {
     user: {
       id: string;
       handle?: string | null;
+      gmailConnected?: boolean;
+      gmailEmail?: string | null;
+      role?: string | null;
+      roleSelected?: boolean;
     } & DefaultSession["user"];
   }
 
