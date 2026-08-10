@@ -63,7 +63,7 @@ export async function POST(
     }> = [];
 
     // 1. Resume Attachment Selection
-    if (isSajid && !application.optimizeResume) {
+    if (isSajid && !(application as any).optimizeResume) {
       // Sajid's default base PDF file
       const resumePdfPath = path.join(process.cwd(), "Sajid-Hossain-Resume.pdf");
       if (fs.existsSync(resumePdfPath)) {

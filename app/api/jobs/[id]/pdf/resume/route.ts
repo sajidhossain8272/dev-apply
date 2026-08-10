@@ -43,7 +43,7 @@ export async function GET(
       user?.name?.toLowerCase().includes("sajid hossain");
 
     // Sajid's default base PDF file
-    if (isSajid && !application.optimizeResume) {
+    if (isSajid && !(application as any).optimizeResume) {
       const resumePdfPath = path.join(process.cwd(), "Sajid-Hossain-Resume.pdf");
       if (fs.existsSync(resumePdfPath)) {
         const resumeBuffer = fs.readFileSync(resumePdfPath);
