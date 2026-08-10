@@ -653,6 +653,10 @@ export default function JobApplicationDetailPage({
                   title="PDF Preview"
                 />
               </div>
+            </div>
+          </div>
+        )}
+
         {/* Google OAuth Gmail Connect Modal */}
         {showGoogleModal && (
           <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
