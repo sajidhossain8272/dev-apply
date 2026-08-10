@@ -89,21 +89,23 @@ export async function POST(
       }
 
       if (!resumeContent && user?.profile) {
-        resumeContent = {
-          name: user.name || "Candidate",
-          headline: user.profile.headline || "Software Engineer",
-          contact: {
-            email: user.email || "",
-            phone: user.phone || "",
-            location: user.profile.location || "",
-            github: user.profile.githubUrl || "",
-            linkedin: user.profile.linkedinUrl || "",
-          },
-          summary: user.profile.bio || "",
-          skills: user.profile.skills || [],
-          experiences: user.profile.experiences || [],
-          projects: user.profile.projects || [],
-        };
+        resumeContent = JSON.parse(
+          JSON.stringify({
+            name: user.name || "Candidate",
+            headline: user.profile.headline || "Software Engineer",
+            contact: {
+              email: user.email || "",
+              phone: user.phone || "",
+              location: user.profile.location || "",
+              github: user.profile.githubUrl || "",
+              linkedin: user.profile.linkedinUrl || "",
+            },
+            summary: user.profile.bio || "",
+            skills: user.profile.skills || [],
+            experiences: user.profile.experiences || [],
+            projects: user.profile.projects || [],
+          })
+        );
       }
 
       const candidateName = (resumeContent as any)?.name || user?.name || "Candidate";
