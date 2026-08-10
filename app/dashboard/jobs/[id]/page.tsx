@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback, use } from "react";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 
 export default function JobApplicationDetailPage({
