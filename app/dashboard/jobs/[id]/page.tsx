@@ -206,10 +206,7 @@ export default function JobApplicationDetailPage({
   }
 
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-emerald-500 selection:text-black">
-      <SiteHeader />
-
-      <main className="max-w-6xl mx-auto px-6 py-10 space-y-10">
+    <div className="max-w-6xl mx-auto space-y-10">
         {/* Navigation Breadcrumb */}
         <div className="flex items-center justify-between text-xs text-neutral-400">
           <Link href="/dashboard/jobs" className="hover:text-emerald-400 transition-colors flex items-center gap-1">
@@ -519,7 +516,6 @@ export default function JobApplicationDetailPage({
             </div>
           </div>
         </section>
-      </main>
     </div>
   );
 }

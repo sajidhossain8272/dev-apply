@@ -63,10 +63,7 @@ export default function VersionsPage() {
     }
 
     return (
-        <>
-            <SiteHeader />
-            <main className="mx-auto min-h-screen max-w-5xl px-4 py-10">
-                <div className="space-y-12">
+        <div className="max-w-6xl mx-auto space-y-12">
                     <header className="space-y-4 border-b border-[var(--border)] pb-12">
                         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
                             <div className="space-y-1">
@@ -114,8 +111,6 @@ export default function VersionsPage() {
                             ))
                         )}
                     </div>
-                </div>
-            </main>
-        </>
+        </div>
     );
 }

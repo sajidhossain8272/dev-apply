@@ -177,10 +177,7 @@ export default function ResumeBuilderPage() {
   const publicShareUrl = currentResume ? `${appUrl}/r/${currentResume.slug}/${variantSlug}` : "";
 
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-emerald-500 selection:text-black">
-      <SiteHeader />
-
-      <main className="max-w-6xl mx-auto px-6 py-12">
+    <div className="max-w-6xl mx-auto space-y-8">
         {/* Navigation & Header */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-8 pb-6 border-b border-neutral-800 print:hidden">
           <div>
@@ -479,7 +476,6 @@ export default function ResumeBuilderPage() {
             />
           </div>
         )}
-      </main>
     </div>
   );
 }

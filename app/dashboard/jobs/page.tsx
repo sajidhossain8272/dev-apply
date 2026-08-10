@@ -112,10 +112,7 @@ export default function JobApplicationsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-emerald-500 selection:text-black">
-      <SiteHeader />
-
-      <main className="max-w-6xl mx-auto px-6 py-10 space-y-10">
+    <div className="max-w-6xl mx-auto space-y-10">
         {/* Page Header */}
         <div className="border-b border-neutral-800 pb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
@@ -301,7 +298,6 @@ Penough Ltd. is looking for an experienced Senior Full Stack Developer...
             </div>
           )}
         </section>
-      </main>
     </div>
   );
 }

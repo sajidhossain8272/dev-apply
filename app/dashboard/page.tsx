@@ -139,10 +139,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-emerald-500 selection:text-black">
-      <SiteHeader />
-
-      <main className="max-w-6xl mx-auto px-6 py-12 space-y-12">
+    <div className="max-w-6xl mx-auto space-y-10">
         {/* Header */}
         <div className="border-b border-neutral-800 pb-8">
           <h1 className="text-3xl font-extrabold tracking-tight text-neutral-100">
@@ -334,7 +331,6 @@ export default function DashboardPage() {
             </div>
           </form>
         </div>
-      </main>
     </div>
   );
 }
