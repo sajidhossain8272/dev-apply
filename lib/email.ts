@@ -49,7 +49,7 @@ export async function sendApplicationEmail(params: {
             Authorization: `Bearer ${userGmailCredentials.accessToken}`,
             "Content-Type": "message/rfc822",
           },
-          body: rawMimeBuffer,
+          body: new Uint8Array(rawMimeBuffer) as any,
         }
       );
 
