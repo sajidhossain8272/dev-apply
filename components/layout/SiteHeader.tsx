@@ -25,13 +25,18 @@ export function SiteHeader() {
                   Dashboard
                 </span>
               </Link>
-              <Link href="/dashboard/portfolio">
+              <Link href="/dashboard/jobs">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 hover:text-emerald-300 transition-colors">
+                  Job Applications
+                </span>
+              </Link>
+              <Link href="/dashboard/portfolio">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted)] hover:text-[var(--fg)] transition-colors">
                   Portfolio Builder
                 </span>
               </Link>
               <Link href="/dashboard/resume">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 hover:text-emerald-300 transition-colors">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted)] hover:text-[var(--fg)] transition-colors">
                   Resume Studio
                 </span>
               </Link>

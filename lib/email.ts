@@ -5,12 +5,19 @@ export async function sendApplicationEmail(params: {
   to: string;
   subject: string;
   body: string;
+  attachments?: Array<{
+    filename: string;
+    content?: Buffer | string;
+    path?: string;
+    contentType?: string;
+  }>;
 }) {
-  const { to, subject, body } = params;
+  const { to, subject, body, attachments } = params;
 
   if (!process.env.SMTP_HOST) {
-    console.warn("SMTP not configured; skipping email send.");
-    return;
+    console.warn("SMTP not configured; simulating email send in console.");
+    console.log(`[SIMULATED EMAIL] To: ${to}\nSubject: ${subject}\nBody:\n${body}\nAttachments: ${attachments?.map(a => a.filename).join(", ") || "None"}`);
+    return { success: true, simulated: true };
   }
 
   const transporter = nodemailer.createTransport({
@@ -24,9 +31,12 @@ export async function sendApplicationEmail(params: {
   });
 
   await transporter.sendMail({
-    from: process.env.EMAIL_FROM ?? "no-reply@example.com",
+    from: process.env.EMAIL_FROM ?? process.env.SMTP_USER ?? "no-reply@example.com",
     to,
     subject,
     text: body,
+    attachments,
   });
+
+  return { success: true, simulated: false };
 }

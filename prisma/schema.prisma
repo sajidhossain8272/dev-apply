@@ -30,13 +30,21 @@ model User {
   githubUsername     String?    // GitHub username
   lastGithubSyncAt   DateTime?  // Last successful sync timestamp
 
-  accounts      Account[]
-  sessions      Session[]
-  profile       Profile?
-  settings      UserSettings?
-  repositories  Repository[]
-  contributions GitHubContribution[]
-  resumes       Resume[]
+  // Gmail Integration
+  gmailAccessToken  String?    // Gmail OAuth access token
+  gmailRefreshToken String?    // Gmail OAuth refresh token
+  gmailConnectedAt  DateTime?  // When Gmail was connected
+  gmailEmail        String?    // The connected Gmail address
+
+  accounts       Account[]
+  sessions       Session[]
+  profile        Profile?
+  settings       UserSettings?
+  repositories   Repository[]
+  contributions  GitHubContribution[]
+  resumes        Resume[]
+  jobApplications JobApplication[]
+  jobCrawlQueue  JobCrawlQueue[]
 }
 
 model Profile {
@@ -251,5 +259,125 @@ model ResumeQuestion {
   createdAt DateTime @default(now())
 
   @@index([resumeId])
+}
+
+// ============================================================
+// JOB APPLICATION FEATURE MODELS
+// ============================================================
+
+enum JobApplicationStatus {
+  DRAFT          // JD pasted, not yet processed
+  ANALYZED       // Match score calculated
+  POLISHING      // Resume being polished for this job
+  READY          // Resume + Cover Letter ready
+  SENT           // Application email sent
+  ARCHIVED       // User archived it
+}
+
+model JobApplication {
+  id          String              @id @default(cuid())
+  userId      String
+  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Job details
+  jobTitle    String?
+  company     String?
+  location    String?
+  jdUrl       String?             // If user pasted a JD link
+  jdText      String               // The full job description text (pasted or fetched)
+  jdSource    String              @default("manual") // manual, link, crawl
+
+  // AI Analysis
+  matchScore  Int?                // 0-100 match score
+  matchReasons Json?              // Array of { reason, matched, missing }
+  analyzedAt  DateTime?
+
+  // Email application
+  recipientEmail String?           // Hiring manager / recruiter email
+  emailSubject   String?           // Email subject line
+  emailBody      String?           // Email body text
+  sentAt         DateTime?
+
+  // Application Options & Q&A
+  optimizeResume Boolean              @default(false)
+  qaPairs        Json?                // Array of { id, question, answer, createdAt }
+
+  status      JobApplicationStatus @default(DRAFT)
+
+  // Relations
+  resumeVersion  ResumeVersion?
+  coverLetter    CoverLetter?
+
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model ResumeVersion {
+  id              String   @id @default(cuid())
+  jobApplicationId String   @unique
+  jobApplication  JobApplication @relation(fields: [jobApplicationId], references: [id], onDelete: Cascade)
+
+  // The polished resume content (JSON, same structure as Resume.content)
+  content         Json
+
+  // AI metadata
+  polishNotes     String?  // What was changed/optimized
+  polishSummary   String?  // Summary of changes
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model CoverLetter {
+  id              String   @id @default(cuid())
+  jobApplicationId String   @unique
+  jobApplication  JobApplication @relation(fields: [jobApplicationId], references: [id], onDelete: Cascade)
+
+  // The cover letter text (editable)
+  content         String
+
+  // AI metadata
+  generatedAt     DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ============================================================
+// FUTURE: JD CRAWLING (3 jobs/day per user)
+// This model is a placeholder for the future crawling feature.
+// It will store crawled job postings that match the user's profile.
+// ============================================================
+
+model JobCrawlQueue {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Crawled job data
+  jobTitle    String
+  company     String
+  location    String?
+  url         String
+  jdText      String?   // Fetched JD text (null until fetched)
+  source      String    @default("crawl") // crawl, api, manual
+
+  // Matching
+  matchScore  Int?
+  matchReasons Json?
+
+  // Processing status
+  status      String    @default("pending") // pending, fetched, matched, shown, dismissed
+  shownAt     DateTime?  // When shown to user
+
+  // Daily quota tracking (3 jobs/day per user)
+  crawlDate   DateTime   @default(now())
+
+  createdAt   DateTime  @default(now())
+
+  @@index([userId])
+  @@index([crawlDate])
+  @@index([status])
 }
 
