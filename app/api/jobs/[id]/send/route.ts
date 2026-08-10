@@ -167,6 +167,8 @@ export async function POST(
     return NextResponse.json({
       success: true,
       simulated: result.simulated,
+      requiresGoogleAuth: !!result.requiresGoogleAuth,
+      method: result.method,
       application: updated,
     });
   } catch (err: any) {
