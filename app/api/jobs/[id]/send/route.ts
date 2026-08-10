@@ -39,6 +39,21 @@ export async function POST(
     const subject = application.emailSubject || `Job Application for ${application.jobTitle || "Position"}`;
     const body = application.emailBody || "Please find my resume and cover letter attached.\n\nBest regards";
 
+    // Fetch user to check profile & identity
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      include: {
+        profile: {
+          include: { experiences: true, projects: true, skills: true },
+        },
+      },
+    });
+
+    const isSajid =
+      user?.handle === "sajidhossain8272" ||
+      user?.email?.toLowerCase().includes("sajidhossain8272") ||
+      user?.name?.toLowerCase().includes("sajid hossain");
+
     // Prepare attachments
     const attachments: Array<{
       filename: string;
@@ -47,14 +62,58 @@ export async function POST(
       contentType?: string;
     }> = [];
 
-    // 1. Primary PDF Resume Attachment
-    const resumePdfPath = path.join(process.cwd(), "Sajid-Hossain-Resume.pdf");
-    if (fs.existsSync(resumePdfPath)) {
-      const resumeBuffer = fs.readFileSync(resumePdfPath);
+    // 1. Resume Attachment Selection
+    if (isSajid && !application.optimizeResume) {
+      // Sajid's default base PDF file
+      const resumePdfPath = path.join(process.cwd(), "Sajid-Hossain-Resume.pdf");
+      if (fs.existsSync(resumePdfPath)) {
+        const resumeBuffer = fs.readFileSync(resumePdfPath);
+        attachments.push({
+          filename: "Sajid-Hossain-Resume.pdf",
+          content: resumeBuffer,
+          contentType: "application/pdf",
+        });
+      }
+    } else {
+      // Dynamic tailored resume generated from user's profile / Resume Studio / ResumeVersion
+      const { formatResumeToText } = await import("@/lib/job-ai");
+
+      let resumeContent = application.resumeVersion?.content;
+
+      if (!resumeContent) {
+        const defaultResume = await prisma.resume.findFirst({
+          where: { userId: session.user.id },
+          orderBy: { updatedAt: "desc" },
+        });
+        resumeContent = defaultResume?.content;
+      }
+
+      if (!resumeContent && user?.profile) {
+        resumeContent = {
+          name: user.name || "Candidate",
+          headline: user.profile.headline || "Software Engineer",
+          contact: {
+            email: user.email || "",
+            phone: user.phone || "",
+            location: user.profile.location || "",
+            github: user.profile.githubUrl || "",
+            linkedin: user.profile.linkedinUrl || "",
+          },
+          summary: user.profile.bio || "",
+          skills: user.profile.skills || [],
+          experiences: user.profile.experiences || [],
+          projects: user.profile.projects || [],
+        };
+      }
+
+      const candidateName = (resumeContent as any)?.name || user?.name || "Candidate";
+      const safeFilename = candidateName.replace(/[^a-zA-Z0-9_-]/g, "_");
+      const formattedResumeText = formatResumeToText(resumeContent);
+
       attachments.push({
-        filename: "Sajid-Hossain-Resume.pdf",
-        content: resumeBuffer,
-        contentType: "application/pdf",
+        filename: `${safeFilename}-Tailored-Resume.txt`,
+        content: formattedResumeText,
+        contentType: "text/plain",
       });
     }
 

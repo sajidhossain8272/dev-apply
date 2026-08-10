@@ -400,7 +400,9 @@ export default function JobApplicationDetailPage({
             <div className="flex items-center justify-between text-neutral-300">
               <span className="font-bold">Attached Resume File:</span>
               <span className="font-mono text-emerald-400">
-                {optimizeResume ? "Tailored-Optimized-Resume.pdf" : "Sajid-Hossain-Resume.pdf"}
+                {optimizeResume
+                  ? "Tailored-Optimized-Resume.txt"
+                  : "Profile-Resume (or Sajid-Hossain-Resume.pdf for Sajid)"}
               </span>
             </div>
             {app.resumeVersion && optimizeResume && (
@@ -500,7 +502,10 @@ export default function JobApplicationDetailPage({
               <div className="text-xs text-neutral-400 flex items-center gap-2">
                 <span>📎 Attachments:</span>
                 <span className="text-emerald-400 font-mono">
-                  {optimizeResume ? "Tailored-Resume.pdf" : "Sajid-Hossain-Resume.pdf"} + Cover-Letter.txt
+                  {optimizeResume
+                    ? "Tailored-Resume.txt"
+                    : "Profile-Resume.txt (Sajid-Hossain-Resume.pdf for Sajid)"}{" "}
+                  + Cover-Letter.txt
                 </span>
               </div>
 

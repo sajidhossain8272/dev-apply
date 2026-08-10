@@ -334,3 +334,93 @@ Instructions:
   const text = await callGeminiApi(prompt, "synthesis", false);
   return text.trim();
 }
+
+/**
+ * Format a resume JSON object into a clean, human-readable, ATS-formatted text document.
+ */
+export function formatResumeToText(content: any): string {
+  if (!content) return "";
+
+  const name = content.name || "Candidate";
+  const headline = content.headline || "";
+  const contact = content.contact || {};
+  const summary = content.summary || "";
+  const skills = content.skills || [];
+  const experiences = content.experiences || [];
+  const projects = content.projects || [];
+  const education = content.education || [];
+
+  let text = `${name.toUpperCase()}\n`;
+  if (headline) text += `${headline}\n`;
+
+  const contactParts = [];
+  if (contact.email) contactParts.push(`Email: ${contact.email}`);
+  if (contact.phone) contactParts.push(`Phone: ${contact.phone}`);
+  if (contact.location) contactParts.push(`Location: ${contact.location}`);
+  if (contact.linkedin) contactParts.push(`LinkedIn: ${contact.linkedin}`);
+  if (contact.github) contactParts.push(`GitHub: ${contact.github}`);
+  if (contact.website) contactParts.push(`Website: ${contact.website}`);
+
+  if (contactParts.length > 0) {
+    text += `${contactParts.join(" | ")}\n`;
+  }
+  text += `${"=".repeat(60)}\n\n`;
+
+  if (summary) {
+    text += `PROFESSIONAL SUMMARY\n${"-".repeat(30)}\n${summary}\n\n`;
+  }
+
+  if (skills && skills.length > 0) {
+    text += `TECHNICAL SKILLS\n${"-".repeat(30)}\n`;
+    for (const skillCat of skills) {
+      if (typeof skillCat === "string") {
+        text += `• ${skillCat}\n`;
+      } else if (skillCat.category && skillCat.items) {
+        text += `${skillCat.category}: ${Array.isArray(skillCat.items) ? skillCat.items.join(", ") : skillCat.items}\n`;
+      } else if (skillCat.name) {
+        text += `• ${skillCat.name} (${skillCat.level || "Proficient"})\n`;
+      }
+    }
+    text += `\n`;
+  }
+
+  if (experiences && experiences.length > 0) {
+    text += `WORK EXPERIENCE\n${"-".repeat(30)}\n`;
+    for (const exp of experiences) {
+      text += `${exp.title || "Role"} - ${exp.company || "Company"}\n`;
+      if (exp.startDate) text += `${exp.startDate} - ${exp.isCurrent ? "Present" : exp.endDate || ""}\n`;
+      if (exp.description) text += `${exp.description}\n`;
+      if (exp.bullets && Array.isArray(exp.bullets)) {
+        for (const b of exp.bullets) {
+          text += `  • ${b}\n`;
+        }
+      }
+      text += `\n`;
+    }
+  }
+
+  if (projects && projects.length > 0) {
+    text += `KEY PROJECTS\n${"-".repeat(30)}\n`;
+    for (const p of projects) {
+      text += `${p.name}\n`;
+      if (p.description) text += `${p.description}\n`;
+      if (p.techStack) text += `Tech Stack: ${p.techStack}\n`;
+      if (p.bullets && Array.isArray(p.bullets)) {
+        for (const b of p.bullets) {
+          text += `  • ${b}\n`;
+        }
+      }
+      text += `\n`;
+    }
+  }
+
+  if (education && education.length > 0) {
+    text += `EDUCATION\n${"-".repeat(30)}\n`;
+    for (const edu of education) {
+      text += `${edu.degree || edu.institution} (${edu.year || ""})\n`;
+    }
+    text += `\n`;
+  }
+
+  return text.trim();
+}
