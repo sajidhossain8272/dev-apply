@@ -120,6 +120,23 @@ export default function JobApplicationDetailPage({
     await handleSave({ regenerateCoverLetter: true });
   };
 
+  const handleReviewCoverLetterPdf = async () => {
+    await handleSave();
+    setPdfPreviewTitle("Cover Letter PDF Review");
+    setPdfPreviewUrl(`/api/jobs/${applicationId}/pdf/cover-letter?t=${Date.now()}`);
+  };
+
+  const handleDownloadCoverLetterPdf = async () => {
+    await handleSave();
+    const url = `/api/jobs/${applicationId}/pdf/cover-letter?t=${Date.now()}`;
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "Cover-Letter.pdf";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
   const handleAskQa = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!qaQuestion.trim()) return;
@@ -351,25 +368,31 @@ export default function JobApplicationDetailPage({
           )}
         </section>
 
-        {/* Cover Letter Studio */}
+        {/* Humanly Written Cover Letter Section */}
         <section className="bg-neutral-900/60 border border-neutral-800 rounded-2xl p-6 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h2 className="text-lg font-bold text-white">ATS Humanly Written Cover Letter</h2>
               <p className="text-xs text-neutral-400">
-                Tailored for {company || "the company"} using your resume and key qualifications.
+                Tailored for {company || "the company"} using your resume and key qualifications. Manually editable below.
               </p>
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
               <button
-                onClick={() => {
-                  setPdfPreviewTitle("Cover Letter PDF Review");
-                  setPdfPreviewUrl(`/api/jobs/${applicationId}/pdf/cover-letter`);
-                }}
+                onClick={handleReviewCoverLetterPdf}
+                disabled={saving}
                 className="bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-400 text-xs font-bold px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5"
               >
                 <span>Review Cover Letter PDF</span>
+              </button>
+
+              <button
+                onClick={handleDownloadCoverLetterPdf}
+                disabled={saving}
+                className="bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-400 text-xs font-bold px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5"
+              >
+                <span>Download PDF</span>
               </button>
 
               <button
@@ -383,7 +406,7 @@ export default function JobApplicationDetailPage({
               <button
                 onClick={() => handleSave()}
                 disabled={saving}
-                className="bg-emerald-400 hover:bg-emerald-300 text-black text-xs font-bold px-4 py-2 rounded-lg transition-colors"
+                className="bg-emerald-400 hover:bg-emerald-300 text-black text-xs font-extrabold px-4 py-2 rounded-lg transition-colors shadow-sm"
               >
                 {saving ? "Saving..." : "Save Cover Letter"}
               </button>
@@ -394,6 +417,7 @@ export default function JobApplicationDetailPage({
             rows={12}
             value={coverLetterContent}
             onChange={(e) => setCoverLetterContent(e.target.value)}
+            placeholder="Edit your cover letter manually..."
             className="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-4 text-sm text-neutral-200 leading-relaxed focus:outline-none focus:border-emerald-500 font-sans"
           />
         </section>
@@ -587,6 +611,13 @@ export default function JobApplicationDetailPage({
                   <span>{pdfPreviewTitle}</span>
                 </h3>
                 <div className="flex items-center gap-3">
+                  <a
+                    href={pdfPreviewUrl}
+                    download={pdfPreviewTitle.includes("Cover Letter") ? "Cover-Letter.pdf" : "Resume.pdf"}
+                    className="text-xs bg-emerald-400 hover:bg-emerald-300 text-black font-extrabold px-3.5 py-1.5 rounded-lg transition-colors flex items-center gap-1"
+                  >
+                    <span>Download PDF</span>
+                  </a>
                   <a
                     href={pdfPreviewUrl}
                     target="_blank"
