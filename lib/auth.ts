@@ -14,6 +14,11 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.GITHUB_ID!,
       clientSecret: process.env.GITHUB_SECRET!,
       allowDangerousEmailAccountLinking: true,
+      authorization: {
+        params: {
+          scope: "read:user user:email repo",
+        },
+      },
       profile(profile) {
         return {
           id: String(profile.id),
@@ -40,6 +45,21 @@ export const authOptions: NextAuthOptions = {
       }
       if (account?.access_token) {
         token.accessToken = account.access_token;
+
+        // Auto-sync githubAccessToken & githubUsername to user record in database
+        if (token.id && account.provider === "github") {
+          try {
+            await prisma.user.update({
+              where: { id: token.id as string },
+              data: {
+                githubAccessToken: account.access_token,
+                githubUsername: (profile as any)?.login || (user as any)?.handle || undefined,
+              },
+            });
+          } catch (e) {
+            console.error("Failed to auto-save githubAccessToken to user:", e);
+          }
+        }
       }
       return token;
     },

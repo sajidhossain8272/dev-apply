@@ -18,9 +18,30 @@ export async function POST() {
             where: { id: session.user.id },
         });
 
-        if (!user?.githubAccessToken) {
+        let token = user?.githubAccessToken;
+
+        // Fallback: check NextAuth Account table if user.githubAccessToken is null
+        if (!token) {
+            const account = await prisma.account.findFirst({
+                where: {
+                    userId: session.user.id,
+                    provider: "github",
+                },
+            });
+            token = account?.access_token || null;
+
+            // Auto-persist token back to user model if found
+            if (token) {
+                await prisma.user.update({
+                    where: { id: session.user.id },
+                    data: { githubAccessToken: token },
+                });
+            }
+        }
+
+        if (!token) {
             return NextResponse.json(
-                { error: "GitHub not connected. Please connect your GitHub account first." },
+                { error: "GitHub account not connected. Please log out and sign in with GitHub again." },
                 { status: 400 }
             );
         }
@@ -28,7 +49,7 @@ export async function POST() {
         const syncService = new GitHubSyncService();
         const result = await syncService.syncUser(
             session.user.id,
-            user.githubAccessToken
+            token
         );
 
         return NextResponse.json({
@@ -39,9 +60,9 @@ export async function POST() {
         console.error("GitHub sync error:", error);
 
         // Handle common errors
-        if (error.message?.includes("Bad credentials")) {
+        if (error.message?.includes("Bad credentials") || error.message?.includes("Invalid GitHub access token")) {
             return NextResponse.json(
-                { error: "Invalid GitHub token. Please reconnect your account." },
+                { error: "Invalid or expired GitHub token. Please log out and sign in with GitHub to refresh authorization." },
                 { status: 401 }
             );
         }
@@ -72,8 +93,16 @@ export async function GET() {
             },
         });
 
+        let isConnected = !!user?.githubAccessToken;
+        if (!isConnected) {
+            const account = await prisma.account.findFirst({
+                where: { userId: session.user.id, provider: "github" },
+            });
+            isConnected = !!account?.access_token;
+        }
+
         return NextResponse.json({
-            connected: !!user?.githubAccessToken,
+            connected: isConnected,
             username: user?.githubUsername,
             lastSyncedAt: user?.lastGithubSyncAt,
         });
