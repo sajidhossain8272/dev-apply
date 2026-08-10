@@ -108,23 +108,33 @@ export async function POST(
         );
       }
 
+      const { generateResumePdfBuffer } = await import("@/lib/pdf-generator");
+
       const candidateName = (resumeContent as any)?.name || user?.name || "Candidate";
       const safeFilename = candidateName.replace(/[^a-zA-Z0-9_-]/g, "_");
-      const formattedResumeText = formatResumeToText(resumeContent);
+      const resumePdfBuffer = await generateResumePdfBuffer(resumeContent);
 
       attachments.push({
-        filename: `${safeFilename}-Tailored-Resume.txt`,
-        content: formattedResumeText,
-        contentType: "text/plain",
+        filename: `${safeFilename}-Tailored-Resume.pdf`,
+        content: resumePdfBuffer,
+        contentType: "application/pdf",
       });
     }
 
-    // 2. Cover Letter Attachment (if present)
+    // 2. Cover Letter Attachment in PDF format
     if (application.coverLetter?.content) {
+      const { generateCoverLetterPdfBuffer } = await import("@/lib/pdf-generator");
+      const coverLetterPdfBuffer = await generateCoverLetterPdfBuffer({
+        text: application.coverLetter.content,
+        candidateName: user?.name || "Candidate",
+        jobTitle: application.jobTitle || undefined,
+        company: application.company || undefined,
+      });
+
       attachments.push({
-        filename: "Cover-Letter.txt",
-        content: application.coverLetter.content,
-        contentType: "text/plain",
+        filename: "Cover-Letter.pdf",
+        content: coverLetterPdfBuffer,
+        contentType: "application/pdf",
       });
     }
 

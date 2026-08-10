@@ -37,6 +37,10 @@ export default function JobApplicationDetailPage({
   const [qaQuestion, setQaQuestion] = useState("");
   const [qaPairs, setQaPairs] = useState<any[]>([]);
 
+  // PDF Preview Modal State
+  const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
+  const [pdfPreviewTitle, setPdfPreviewTitle] = useState<string>("");
+
   const loadApplication = useCallback(async () => {
     try {
       setLoading(true);
@@ -346,7 +350,17 @@ export default function JobApplicationDetailPage({
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={() => {
+                  setPdfPreviewTitle("Cover Letter PDF Review");
+                  setPdfPreviewUrl(`/api/jobs/${applicationId}/pdf/cover-letter`);
+                }}
+                className="bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-400 text-xs font-bold px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5"
+              >
+                <span>👁️ Review Cover Letter PDF</span>
+              </button>
+
               <button
                 onClick={handleRegenerateCoverLetter}
                 disabled={saving}
@@ -375,32 +389,53 @@ export default function JobApplicationDetailPage({
 
         {/* Resume Option & Optimization Toggle */}
         <section className="bg-neutral-900/60 border border-neutral-800 rounded-2xl p-6 space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-4">
             <h2 className="text-lg font-bold text-white">📄 Resume Attachment Selection</h2>
-            <label className="flex items-center gap-3 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={optimizeResume}
-                onChange={(e) => {
-                  setOptimizeResume(e.target.checked);
-                  handleSave({ optimizeResume: e.target.checked });
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => {
+                  setPdfPreviewTitle("Resume PDF Review");
+                  setPdfPreviewUrl(`/api/jobs/${applicationId}/pdf/resume`);
                 }}
-                className="w-4 h-4 rounded border-neutral-700 text-emerald-500 focus:ring-emerald-500 bg-neutral-900"
-              />
-              <span className="text-xs text-neutral-300">
-                Optimize Resume Keywords for this Job
-              </span>
-            </label>
+                className="bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-400 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
+              >
+                <span>👁️ Review Resume PDF</span>
+              </button>
+
+              <label className="flex items-center gap-3 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={optimizeResume}
+                  onChange={(e) => {
+                    setOptimizeResume(e.target.checked);
+                    handleSave({ optimizeResume: e.target.checked });
+                  }}
+                  className="w-4 h-4 rounded border-neutral-700 text-emerald-500 focus:ring-emerald-500 bg-neutral-900"
+                />
+                <span className="text-xs text-neutral-300">
+                  Optimize Resume Keywords for this Job
+                </span>
+              </label>
+            </div>
           </div>
 
           <div className="p-4 rounded-xl bg-neutral-950 border border-neutral-800 text-xs space-y-2">
-            <div className="flex items-center justify-between text-neutral-300">
+            <div className="flex items-center justify-between text-neutral-300 flex-wrap gap-2">
               <span className="font-bold">Attached Resume File:</span>
-              <span className="font-mono text-emerald-400">
-                {optimizeResume
-                  ? "Tailored-Optimized-Resume.txt"
-                  : "Profile-Resume (or Sajid-Hossain-Resume.pdf for Sajid)"}
-              </span>
+              <button
+                onClick={() => {
+                  setPdfPreviewTitle("Resume PDF Review");
+                  setPdfPreviewUrl(`/api/jobs/${applicationId}/pdf/resume`);
+                }}
+                className="font-mono text-emerald-400 hover:underline flex items-center gap-1"
+              >
+                <span>📄</span>
+                <span>
+                  {optimizeResume
+                    ? "Tailored-Optimized-Resume.pdf"
+                    : "Sajid-Hossain-Resume.pdf / Dynamic-Profile-Resume.pdf"}
+                </span>
+              </button>
             </div>
             {app.resumeVersion && optimizeResume && (
               <div className="text-neutral-400 border-t border-neutral-800 pt-2 space-y-1">
@@ -495,15 +530,30 @@ export default function JobApplicationDetailPage({
               />
             </div>
 
-            <div className="flex items-center justify-between pt-2">
-              <div className="text-xs text-neutral-400 flex items-center gap-2">
-                <span>📎 Attachments:</span>
-                <span className="text-emerald-400 font-mono">
-                  {optimizeResume
-                    ? "Tailored-Resume.txt"
-                    : "Profile-Resume.txt (Sajid-Hossain-Resume.pdf for Sajid)"}{" "}
-                  + Cover-Letter.txt
-                </span>
+            <div className="flex items-center justify-between pt-2 flex-wrap gap-4">
+              <div className="text-xs text-neutral-400 flex items-center gap-2 flex-wrap">
+                <span>📎 PDF Attachments:</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPdfPreviewTitle("Resume PDF Review");
+                    setPdfPreviewUrl(`/api/jobs/${applicationId}/pdf/resume`);
+                  }}
+                  className="bg-neutral-900 border border-neutral-800 hover:border-emerald-500/50 text-emerald-400 font-mono px-2.5 py-1 rounded transition-colors flex items-center gap-1"
+                >
+                  <span>📄 Resume.pdf</span>
+                </button>
+                <span>+</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPdfPreviewTitle("Cover Letter PDF Review");
+                    setPdfPreviewUrl(`/api/jobs/${applicationId}/pdf/cover-letter`);
+                  }}
+                  className="bg-neutral-900 border border-neutral-800 hover:border-emerald-500/50 text-emerald-400 font-mono px-2.5 py-1 rounded transition-colors flex items-center gap-1"
+                >
+                  <span>📄 Cover-Letter.pdf</span>
+                </button>
               </div>
 
               <button
@@ -516,6 +566,43 @@ export default function JobApplicationDetailPage({
             </div>
           </div>
         </section>
+
+        {/* PDF Review / Preview Modal */}
+        {pdfPreviewUrl && (
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6">
+            <div className="bg-neutral-950 border border-neutral-800 rounded-2xl w-full max-w-4xl h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+              <div className="p-4 border-b border-neutral-800 flex items-center justify-between bg-neutral-900/50">
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <span>📄 {pdfPreviewTitle}</span>
+                </h3>
+                <div className="flex items-center gap-3">
+                  <a
+                    href={pdfPreviewUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs bg-neutral-800 hover:bg-neutral-700 text-neutral-200 px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    Open in New Tab ↗
+                  </a>
+                  <button
+                    onClick={() => setPdfPreviewUrl(null)}
+                    className="text-xs bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white px-3 py-1.5 rounded-lg transition-colors font-bold"
+                  >
+                    ✕ Close
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex-1 bg-neutral-900/40">
+                <iframe
+                  src={pdfPreviewUrl}
+                  className="w-full h-full border-none"
+                  title="PDF Preview"
+                />
+              </div>
+            </div>
+          </div>
+        )}
     </div>
   );
 }
