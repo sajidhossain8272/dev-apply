@@ -166,6 +166,53 @@ export default function JobApplicationDetailPage({
     }
   };
 
+  const handleOpenEmailClient = async (type: "gmail" | "mailto") => {
+    if (!recipientEmail.trim()) {
+      setError("Please provide a valid recipient email before opening email client.");
+      return;
+    }
+
+    try {
+      // 1. Auto-download Cover Letter PDF
+      handleDownloadCoverLetterPdf();
+
+      // 2. Auto-download Resume PDF after short delay
+      setTimeout(() => {
+        const url = `/api/jobs/${applicationId}/pdf/resume?t=${Date.now()}`;
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "Resume.pdf";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }, 600);
+
+      // 3. Copy Email Body text to clipboard
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(emailBody);
+      }
+
+      // 4. Construct URL and launch email client
+      const encTo = encodeURIComponent(recipientEmail.trim());
+      const encSub = encodeURIComponent(emailSubject.trim());
+      const encBody = encodeURIComponent(emailBody.trim());
+
+      if (type === "gmail") {
+        const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encTo}&su=${encSub}&body=${encBody}`;
+        window.open(gmailUrl, "_blank");
+      } else {
+        const mailtoUrl = `mailto:${encTo}?subject=${encSub}&body=${encBody}`;
+        window.location.href = mailtoUrl;
+      }
+
+      setSuccessMsg(
+        `Opened draft in ${type === "gmail" ? "Gmail Web" : "Mail App"} for ${recipientEmail}! PDFs downloaded & text copied to clipboard.`
+      );
+    } catch (err: any) {
+      setError(err.message || "Failed to open email client");
+    }
+  };
+
   const handleSendEmail = async () => {
     if (!recipientEmail.trim()) {
       setError("Please provide a valid recipient email before sending.");
@@ -591,16 +638,45 @@ export default function JobApplicationDetailPage({
                 </button>
               </div>
 
-              <button
-                onClick={handleSendEmail}
-                disabled={sending || !recipientEmail.trim()}
-                className="bg-emerald-400 hover:bg-emerald-300 disabled:opacity-50 text-black font-extrabold text-xs px-6 py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2"
-              >
-                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-                </svg>
-                <span>{sending ? "Sending Email..." : "Send Application Email Now"}</span>
-              </button>
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => handleOpenEmailClient("gmail")}
+                  disabled={!recipientEmail.trim()}
+                  className="bg-white hover:bg-neutral-100 disabled:opacity-50 text-black font-extrabold text-xs px-4 py-2.5 rounded-xl transition-all shadow-md flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                  </svg>
+                  <span>Open Gmail Web Draft ↗</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleOpenEmailClient("mailto")}
+                  disabled={!recipientEmail.trim()}
+                  className="bg-neutral-800 hover:bg-neutral-700 disabled:opacity-50 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  <span>Open Desktop Mail App ✉</span>
+                </button>
+
+                <button
+                  onClick={handleSendEmail}
+                  disabled={sending || !recipientEmail.trim()}
+                  className="bg-emerald-400 hover:bg-emerald-300 disabled:opacity-50 text-black font-extrabold text-xs px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                  </svg>
+                  <span>{sending ? "Sending..." : "Send Direct via Server"}</span>
+                </button>
+              </div>
             </div>
           </div>
         </section>
