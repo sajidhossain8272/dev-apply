@@ -18,10 +18,10 @@ export async function POST(request: Request) {
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     // 2. Remove old OTP tokens for this email
-    await prisma.otpToken.deleteMany({ where: { email: cleanEmail } });
+    await (prisma as any).otpToken.deleteMany({ where: { email: cleanEmail } });
 
     // 3. Store new OTP token in database
-    await prisma.otpToken.create({
+    await (prisma as any).otpToken.create({
       data: {
         email: cleanEmail,
         code: otpCode,

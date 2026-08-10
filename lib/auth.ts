@@ -47,7 +47,7 @@ export const authOptions: NextAuthOptions = {
         const code = credentials.code.trim();
 
         // 1. Verify OTP token in database
-        const validOtp = await prisma.otpToken.findFirst({
+        const validOtp = await (prisma as any).otpToken.findFirst({
           where: {
             email,
             code,
@@ -60,7 +60,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         // Delete used OTP token
-        await prisma.otpToken.deleteMany({ where: { email } });
+        await (prisma as any).otpToken.deleteMany({ where: { email } });
 
         // 2. Find or create user
         let user = await prisma.user.findUnique({ where: { email } });
@@ -128,7 +128,7 @@ export const authOptions: NextAuthOptions = {
 
       // Fetch user's current role state from database
       if (token.id) {
-        const dbUser = await prisma.user.findUnique({
+        const dbUser = await (prisma.user.findUnique as any)({
           where: { id: token.id as string },
           select: { role: true, roleSelected: true },
         });
