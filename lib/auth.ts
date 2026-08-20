@@ -1,9 +1,11 @@
 import type { NextAuthOptions } from "next-auth";
 import GithubProvider from "next-auth/providers/github";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "./prisma";
 
 export const authOptions: NextAuthOptions = {
+  adapter: PrismaAdapter(prisma),
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 Days persistent session
@@ -109,80 +111,40 @@ export const authOptions: NextAuthOptions = {
       return `${baseUrl}/dashboard`;
     },
     async jwt({ token, account, user, profile }) {
-      // 1. On initial sign-in (user or account present)
-      if (account && profile && account.provider === "github") {
-        try {
-          const ghEmail = (user?.email || (profile as any)?.email || `${(profile as any)?.login}@users.noreply.github.com`).toLowerCase().trim();
-          const ghHandle = (profile as any)?.login || "developer";
-          const ghName = user?.name || (profile as any)?.name || ghHandle;
-          const ghImage = user?.image || (profile as any)?.avatar_url;
-
-          // Find or create Prisma user
-          let dbUser = await prisma.user.findFirst({
-            where: {
-              OR: [
-                { email: ghEmail },
-                { githubUsername: ghHandle },
-              ],
-            },
-          });
-
-          if (!dbUser) {
-            let handleCandidate = ghHandle;
-            const handleExists = await prisma.user.findUnique({ where: { handle: handleCandidate } });
-            if (handleExists) {
-              handleCandidate = `${ghHandle}_${Date.now().toString().slice(-4)}`;
-            }
-
-            dbUser = await prisma.user.create({
-              data: {
-                email: ghEmail,
-                name: ghName,
-                image: ghImage,
-                handle: handleCandidate,
-                githubUsername: ghHandle,
-                githubAccessToken: account.access_token,
-                emailVerified: new Date(),
-                profile: { create: { isPublic: true } },
-              },
-            });
-          } else {
-            // Update GitHub credentials and avatar
-            dbUser = await prisma.user.update({
-              where: { id: dbUser.id },
-              data: {
-                githubAccessToken: account.access_token || dbUser.githubAccessToken,
-                githubUsername: ghHandle,
-                image: ghImage || dbUser.image,
-                name: dbUser.name || ghName,
-                emailVerified: dbUser.emailVerified || new Date(),
-              },
-            });
-          }
-
-          token.id = dbUser.id;
-          token.handle = dbUser.handle;
-          token.role = (dbUser as any).role || null;
-          token.roleSelected = !!(dbUser as any).roleSelected;
-          token.accessToken = account.access_token;
-        } catch (err) {
-          console.error("Error linking GitHub user in jwt callback:", err);
-          if (user?.id) token.id = user.id;
-        }
-      } else if (user) {
+      if (user) {
         token.id = user.id;
-        token.handle = (user as any).handle || null;
+        token.handle = (user as any).handle || (profile as any)?.login || null;
+      }
+      if (account?.access_token) {
+        token.accessToken = account.access_token;
+
+        if (token.id && account.provider === "github") {
+          try {
+            await prisma.user.update({
+              where: { id: token.id as string },
+              data: {
+                githubAccessToken: account.access_token,
+                githubUsername: (profile as any)?.login || (user as any)?.handle || undefined,
+                ...((user as any)?.handle ? { handle: (user as any).handle } : {}),
+              },
+            });
+          } catch (e) {
+            console.error("Failed to auto-save githubAccessToken to user:", e);
+          }
+        }
       }
 
-      // 2. Subsequent session token lookups
-      if (token.id && !token.role) {
+      // Fetch user's current role state from database
+      if (token.id) {
         try {
           const dbUser = await (prisma.user.findUnique as any)({
             where: { id: token.id as string },
-            select: { id: true, handle: true, role: true, roleSelected: true },
+            select: { handle: true, role: true, roleSelected: true },
           });
           if (dbUser) {
-            token.handle = dbUser.handle || token.handle;
+            if (!token.handle && dbUser.handle) {
+              token.handle = dbUser.handle;
+            }
             token.role = dbUser.role;
             token.roleSelected = dbUser.roleSelected;
           }
@@ -202,8 +164,7 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
-    async signIn({ user, profile, account }) {
-      // Return true to allow OAuth process to complete, jwt callback handles persistence safely
+    async signIn() {
       return true;
     },
   },
