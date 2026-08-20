@@ -34,11 +34,12 @@ export async function POST(request: Request) {
     const smtpPass = process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS || process.env.EMAIL_SERVER_PASSWORD;
 
     if (smtpUser && smtpPass) {
+      const cleanPass = smtpPass.replace(/\s+/g, "");
       const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
-          user: smtpUser,
-          pass: smtpPass,
+          user: smtpUser.trim(),
+          pass: cleanPass,
         },
       });
 

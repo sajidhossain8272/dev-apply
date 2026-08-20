@@ -64,11 +64,18 @@ export const authOptions: NextAuthOptions = {
         let user = await prisma.user.findUnique({ where: { email } });
 
         if (!user) {
+          const baseName = email.split("@")[0].replace(/[^a-zA-Z0-9_-]/g, "");
+          let handleCandidate = baseName || "user";
+          const existingHandle = await prisma.user.findUnique({ where: { handle: handleCandidate } });
+          if (existingHandle) {
+            handleCandidate = `${baseName}_${Date.now().toString().slice(-4)}`;
+          }
+
           user = await prisma.user.create({
             data: {
               email,
               name: email.split("@")[0],
-              handle: `${email.split("@")[0]}_${Date.now().toString().slice(-4)}`,
+              handle: handleCandidate,
               emailVerified: new Date(),
               profile: {
                 create: {
@@ -153,30 +160,53 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
-    async signIn({ user, profile }) {
+    async signIn({ user, profile, account }) {
       try {
-        const email = user.email?.toLowerCase() || `${(profile as any)?.login || "github-user"}@users.noreply.github.com`;
-        const handle = (profile as any)?.login || (user as any).handle || undefined;
-        const dbUser = await prisma.user.upsert({
-          where: { email },
-          create: {
-            email,
-            name: user.name || handle || "Developer",
-            image: user.image,
-            handle,
-            emailVerified: new Date(),
-            profile: { create: { isPublic: true } },
-          },
-          update: {
-            name: user.name || undefined,
-            image: user.image || undefined,
-            handle: handle || undefined,
-            emailVerified: new Date(),
-          },
-        });
-        user.id = dbUser.id;
+        if (account?.provider === "github") {
+          const email = user.email?.toLowerCase() || `${(profile as any)?.login || "github-user"}@users.noreply.github.com`;
+          const handle = (profile as any)?.login || (user as any).handle || undefined;
+
+          let dbUser = await prisma.user.findUnique({ where: { email } });
+          if (!dbUser) {
+            let handleCandidate = handle || `gh_${Date.now().toString().slice(-4)}`;
+            const existingHandle = await prisma.user.findUnique({ where: { handle: handleCandidate } });
+            if (existingHandle) {
+              handleCandidate = `${handleCandidate}_${Date.now().toString().slice(-4)}`;
+            }
+
+            dbUser = await prisma.user.create({
+              data: {
+                email,
+                name: user.name || handle || "Developer",
+                image: user.image,
+                handle: handleCandidate,
+                emailVerified: new Date(),
+                profile: { create: { isPublic: true } },
+              },
+            });
+          } else {
+            let safeHandle = undefined;
+            if (handle && handle !== dbUser.handle) {
+              const handleTaken = await prisma.user.findUnique({ where: { handle } });
+              if (!handleTaken) {
+                safeHandle = handle;
+              }
+            }
+
+            dbUser = await prisma.user.update({
+              where: { id: dbUser.id },
+              data: {
+                name: user.name || dbUser.name,
+                image: user.image || dbUser.image,
+                ...(safeHandle ? { handle: safeHandle } : {}),
+                emailVerified: dbUser.emailVerified || new Date(),
+              },
+            });
+          }
+          user.id = dbUser.id;
+        }
       } catch (error) {
-        console.error("Failed to persist OAuth user:", error);
+        console.error("Failed to persist user in signIn callback:", error);
         return false;
       }
       return true;

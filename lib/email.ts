@@ -99,8 +99,8 @@ export async function sendApplicationEmail(params: {
   }
 
   // 3. Gmail / Custom SMTP Transport
-  const smtpUser = process.env.SMTP_USER || process.env.GMAIL_USER;
-  const smtpPass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD;
+  const smtpUser = (process.env.SMTP_USER || process.env.GMAIL_USER || "").trim();
+  const smtpPass = (process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || "").replace(/\s+/g, "");
   const smtpHost = process.env.SMTP_HOST || "smtp.gmail.com";
   const smtpPort = Number(process.env.SMTP_PORT ?? 587);
 
