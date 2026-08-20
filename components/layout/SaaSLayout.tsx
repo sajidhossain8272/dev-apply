@@ -134,8 +134,10 @@ export function SaaSLayout({ children }: SaaSLayoutProps) {
     );
   }
 
-  // Strict Protection: Unauthenticated visitors redirected to /login
-  if (status === "unauthenticated" || !session) {
+  const isSajidWorkspace = pathname === "/dashboard/sajid";
+
+  // Temporary page-only bypass for the personal workspace. APIs remain gated.
+  if (!isSajidWorkspace && (status === "unauthenticated" || !session)) {
     if (typeof window !== "undefined") {
       window.location.href = "/login";
     }
@@ -243,12 +245,12 @@ export function SaaSLayout({ children }: SaaSLayoutProps) {
         <div className="p-3 border-t border-neutral-800/80 bg-neutral-950">
           <div className="flex items-center gap-3 p-2 rounded-xl bg-neutral-900/60 border border-neutral-800/60">
             <div className="h-8 w-8 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-bold text-xs flex items-center justify-center shrink-0">
-              {session.user.name?.charAt(0) || "U"}
+              {session?.user?.name?.charAt(0) || "S"}
             </div>
 
             {!collapsed && (
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold text-neutral-100 truncate">{session.user.name}</p>
+                <p className="text-xs font-bold text-neutral-100 truncate">{session?.user?.name || "Sajid Workspace"}</p>
                 <p className="text-[10px] text-emerald-400 font-mono flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                   {userRole === "CLIENT" ? "Client Role" : "Developer Role"}
