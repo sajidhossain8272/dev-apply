@@ -48,14 +48,15 @@ export function SiteHeader() {
           )}
 
           {status === "unauthenticated" && (
-            <Button
-              type="button"
-              variant="outline"
-              className="h-8 px-4 text-[10px]"
-              onClick={() => signIn("github")}
-            >
-              Sign In
-            </Button>
+            <Link href="/login">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-8 px-4 text-[10px]"
+              >
+                Sign In
+              </Button>
+            </Link>
           )}
 
           {status === "authenticated" && (

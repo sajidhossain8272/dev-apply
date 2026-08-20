@@ -34,26 +34,54 @@ export interface GitHubRepository {
 
 export class GitHubAPI {
   private octokit: Octokit;
+  private hasToken: boolean;
 
-  constructor(token: string) {
-    this.octokit = new Octokit({ auth: token });
+  constructor(token?: string | null) {
+    if (token && token.trim()) {
+      this.octokit = new Octokit({ auth: token.trim() });
+      this.hasToken = true;
+    } else {
+      this.octokit = new Octokit();
+      this.hasToken = false;
+    }
   }
 
-  async getUserProfile(): Promise<GitHubProfile> {
-    const { data } = await this.octokit.users.getAuthenticated();
-    return {
-      username: data.login,
-      name: data.name,
-      bio: data.bio,
-      location: data.location,
-      company: data.company,
-      blog: data.blog ?? null,
-      twitter: data.twitter_username ?? null,
-      avatarUrl: data.avatar_url,
-      publicRepos: data.public_repos,
-      followers: data.followers,
-      following: data.following,
-    };
+  async getUserProfile(username?: string): Promise<GitHubProfile> {
+    if (username) {
+      const { data } = await this.octokit.users.getByUsername({ username });
+      return {
+        username: data.login,
+        name: data.name ?? null,
+        bio: data.bio ?? null,
+        location: data.location ?? null,
+        company: data.company ?? null,
+        blog: data.blog ?? null,
+        twitter: data.twitter_username ?? null,
+        avatarUrl: data.avatar_url,
+        publicRepos: data.public_repos,
+        followers: data.followers,
+        following: data.following,
+      };
+    }
+
+    if (this.hasToken) {
+      const { data } = await this.octokit.users.getAuthenticated();
+      return {
+        username: data.login,
+        name: data.name ?? null,
+        bio: data.bio ?? null,
+        location: data.location ?? null,
+        company: data.company ?? null,
+        blog: data.blog ?? null,
+        twitter: data.twitter_username ?? null,
+        avatarUrl: data.avatar_url,
+        publicRepos: data.public_repos,
+        followers: data.followers,
+        following: data.following,
+      };
+    }
+
+    throw new Error("GitHub username or access token is required to fetch profile");
   }
 
   async getRepositories(username: string): Promise<GitHubRepository[]> {

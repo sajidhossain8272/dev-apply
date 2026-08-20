@@ -7,18 +7,29 @@ import { GitHubSyncService } from "@/lib/github-sync";
 /**
  * Trigger GitHub data sync
  */
-export async function POST() {
+export async function POST(request: Request) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
         return new NextResponse("Unauthorized", { status: 401 });
     }
 
     try {
+        const body = await request.json().catch(() => ({}));
         const user = await prisma.user.findUnique({
             where: { id: session.user.id },
+            select: {
+                id: true,
+                githubUsername: true,
+                githubAccessToken: true,
+                handle: true,
+            },
         });
 
-        let token = user?.githubAccessToken;
+        const explicitUsername = body.username?.trim();
+        const explicitToken = body.accessToken?.trim() || body.token?.trim();
+
+        let token = explicitToken || user?.githubAccessToken;
+        let username = explicitUsername || user?.githubUsername || user?.handle;
 
         // Fallback: check NextAuth Account table if user.githubAccessToken is null
         if (!token) {
@@ -28,41 +39,42 @@ export async function POST() {
                     provider: "github",
                 },
             });
-            token = account?.access_token || null;
-
-            // Auto-persist token back to user model if found
-            if (token) {
-                await prisma.user.update({
-                    where: { id: session.user.id },
-                    data: { githubAccessToken: token },
-                });
+            if (account?.access_token) {
+                token = account.access_token;
             }
         }
 
-        if (!token) {
+        if (!token && !username) {
             return NextResponse.json(
-                { error: "GitHub account not connected. Please log out and sign in with GitHub again." },
+                { error: "Please enter your GitHub Username or Personal Access Token in Settings to sync your repositories." },
                 { status: 400 }
             );
         }
 
         const syncService = new GitHubSyncService();
-        const result = await syncService.syncUser(
-            session.user.id,
-            token
-        );
+        const result = await syncService.syncUser(session.user.id, {
+            accessToken: token || null,
+            username: username || null,
+        });
 
         return NextResponse.json({
-            message: "GitHub data synced successfully",
+            message: `GitHub data synced successfully for @${result.username}`,
+            reposSynced: result.repoCount,
             ...result,
         });
     } catch (error: any) {
         console.error("GitHub sync error:", error);
 
-        // Handle common errors
+        if (error.status === 404 || error.message?.includes("Not Found")) {
+            return NextResponse.json(
+                { error: "GitHub user not found. Please verify the GitHub username." },
+                { status: 404 }
+            );
+        }
+
         if (error.message?.includes("Bad credentials") || error.message?.includes("Invalid GitHub access token")) {
             return NextResponse.json(
-                { error: "Invalid or expired GitHub token. Please log out and sign in with GitHub to refresh authorization." },
+                { error: "Invalid GitHub access token. Please check your Personal Access Token in Settings." },
                 { status: 401 }
             );
         }

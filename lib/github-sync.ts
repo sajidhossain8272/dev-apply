@@ -5,23 +5,36 @@ export class GitHubSyncService {
     /**
      * Perform a full sync of GitHub data for a user
      */
-    async syncUser(userId: string, accessToken: string) {
+    /**
+     * Perform a full sync of GitHub data for a user
+     */
+    async syncUser(
+        userId: string,
+        options: string | { accessToken?: string | null; username?: string | null }
+    ) {
+        const accessToken = typeof options === "string" ? options : options?.accessToken;
+        let targetUsername = typeof options === "object" ? options?.username : undefined;
+
         const api = new GitHubAPI(accessToken);
 
-        // Verify token is valid
-        const isValid = await api.verifyToken();
-        if (!isValid) {
-            throw new Error("Invalid GitHub access token");
+        // If access token is provided, verify token
+        if (accessToken && accessToken.trim()) {
+            const isValid = await api.verifyToken();
+            if (!isValid) {
+                throw new Error("Invalid GitHub access token");
+            }
         }
 
-        // Fetch GitHub profile
-        const profile = await api.getUserProfile();
+        // Fetch GitHub profile (by username if unauthenticated, or authenticated profile)
+        const profile = await api.getUserProfile(targetUsername || undefined);
+        targetUsername = profile.username;
 
-        // Update user with GitHub data
+        // Update user with GitHub data & access token if provided
         await prisma.user.update({
             where: { id: userId },
             data: {
                 githubUsername: profile.username,
+                ...(accessToken ? { githubAccessToken: accessToken.trim() } : {}),
                 lastGithubSyncAt: new Date(),
             },
         });
@@ -43,6 +56,7 @@ export class GitHubSyncService {
 
         return {
             success: true,
+            username: profile.username,
             repoCount: repos.length,
             skillsAdded: Object.keys(languages).length,
         };
