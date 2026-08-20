@@ -128,13 +128,19 @@ export const authOptions: NextAuthOptions = {
 
       // Fetch user's current role state from database
       if (token.id) {
-        const dbUser = await (prisma.user.findUnique as any)({
-          where: { id: token.id as string },
-          select: { role: true, roleSelected: true },
-        });
-        if (dbUser) {
-          token.role = dbUser.role;
-          token.roleSelected = dbUser.roleSelected;
+        try {
+          const dbUser = await (prisma.user.findUnique as any)({
+            where: { id: token.id as string },
+            select: { role: true, roleSelected: true },
+          });
+          if (dbUser) {
+            token.role = dbUser.role;
+            token.roleSelected = dbUser.roleSelected;
+          }
+        } catch (error) {
+          // Do not turn an otherwise valid OAuth callback into OAuthCallback
+          // when an optional role lookup is temporarily unavailable.
+          console.error("Failed to load user role during session refresh:", error);
         }
       }
 
@@ -156,11 +162,10 @@ export const authOptions: NextAuthOptions = {
   events: {
     async createUser({ user }) {
       try {
-        await prisma.profile.create({
-          data: {
-            userId: user.id,
-            isPublic: true,
-          },
+        await prisma.profile.upsert({
+          where: { userId: user.id },
+          create: { userId: user.id, isPublic: true },
+          update: {},
         });
       } catch (e) {
         console.error("Error creating default profile for user:", e);
