@@ -69,6 +69,16 @@ export function SaaSLayout({ children }: SaaSLayoutProps) {
             </svg>
           ),
         },
+        {
+          name: "Sajid Resume Center",
+          href: "/dashboard/sajid",
+          icon: (
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v12m6-6H6m13 7.5V4.5A1.5 1.5 0 0017.5 3h-11A1.5 1.5 0 005 4.5v15A1.5 1.5 0 006.5 21h11a1.5 1.5 0 001.5-1.5z" />
+            </svg>
+          ),
+          badge: "Personal",
+        },
       ],
     },
     {
@@ -105,6 +115,7 @@ export function SaaSLayout({ children }: SaaSLayoutProps) {
     if (pathname === "/dashboard/jobs") return "Job Applications Studio";
     if (pathname === "/dashboard/portfolio") return "Portfolio Builder";
     if (pathname === "/dashboard/resume") return "Resume Studio";
+    if (pathname === "/dashboard/sajid") return "Sajid Resume Center";
     if (pathname === "/dashboard/marketplace") return "Freelance Tasks & Marketplace Jobs";
     if (pathname === "/dashboard/settings") return "Settings & Sync Profile";
     if (pathname === "/dashboard/versions") return "Version Control & Snapshots";
