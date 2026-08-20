@@ -72,10 +72,21 @@ export async function POST(request: Request) {
             );
         }
 
-        if (error.message?.includes("Bad credentials") || error.message?.includes("Invalid GitHub access token")) {
+        if (
+            error.status === 401 ||
+            error.status === 403 ||
+            error.message?.includes("Bad credentials") ||
+            error.message?.includes("Invalid GitHub access token") ||
+            error.message?.includes("rate limit")
+        ) {
             return NextResponse.json(
-                { error: "Invalid GitHub access token. Please check your Personal Access Token in Settings." },
-                { status: 401 }
+                {
+                    error:
+                        error.message?.includes("rate limit")
+                            ? "GitHub API rate limit reached. Please provide a Personal Access Token in Settings to increase your rate limit."
+                            : "Invalid or expired GitHub Personal Access Token. Please verify your token permissions or leave it empty to sync public repositories.",
+                },
+                { status: 400 }
             );
         }
 

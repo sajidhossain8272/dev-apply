@@ -46,12 +46,17 @@ export class GitHubSyncService {
         const repos = await api.getRepositories(profile.username);
         await this.syncRepositories(userId, repos);
 
-        // Sync pinned repositories as Projects
+        // Sync pinned or top repositories as Projects
         const pinnedRepos = await api.getPinnedRepositories(profile.username);
         await this.syncPinnedAsProjects(userId, pinnedRepos);
 
-        // Auto-detect and add skills
-        const languages = await api.getLanguages(profile.username);
+        // Auto-detect and add skills directly from fetched repositories
+        const languages: Record<string, number> = {};
+        for (const repo of repos) {
+            if (repo.language && !repo.isFork) {
+                languages[repo.language] = (languages[repo.language] || 0) + 1;
+            }
+        }
         await this.syncSkillsFromLanguages(userId, languages);
 
         return {
@@ -120,35 +125,55 @@ export class GitHubSyncService {
     }
 
     /**
-     * Sync repositories from GitHub to database
+     * Sync repositories from GitHub to database (upserting each repo safely)
      */
     private async syncRepositories(userId: string, repos: GitHubRepository[]) {
-        // Delete old repos
-        await prisma.repository.deleteMany({ where: { userId } });
+        if (!repos || repos.length === 0) return;
 
-        if (repos.length === 0) return;
-
-        // Insert new repos
-        await prisma.repository.createMany({
-            data: repos.map((repo) => ({
-                userId,
-                githubId: repo.githubId,
-                name: repo.name,
-                fullName: repo.fullName,
-                description: repo.description,
-                url: repo.url,
-                homepage: repo.homepage,
-                language: repo.language,
-                stars: repo.stars,
-                forks: repo.forks,
-                isPrivate: repo.isPrivate,
-                isFork: repo.isFork,
-                topics: repo.topics,
-                createdAt: repo.createdAt,
-                updatedAt: repo.updatedAt,
-                lastPushedAt: repo.lastPushedAt,
-            })),
-        });
+        // Upsert each repo by unique githubId to avoid constraint conflicts across users
+        for (const repo of repos) {
+            try {
+                await prisma.repository.upsert({
+                    where: { githubId: repo.githubId },
+                    create: {
+                        userId,
+                        githubId: repo.githubId,
+                        name: repo.name,
+                        fullName: repo.fullName,
+                        description: repo.description,
+                        url: repo.url,
+                        homepage: repo.homepage,
+                        language: repo.language,
+                        stars: repo.stars,
+                        forks: repo.forks,
+                        isPrivate: repo.isPrivate,
+                        isFork: repo.isFork,
+                        topics: repo.topics || [],
+                        createdAt: repo.createdAt,
+                        updatedAt: repo.updatedAt,
+                        lastPushedAt: repo.lastPushedAt,
+                    },
+                    update: {
+                        userId,
+                        name: repo.name,
+                        fullName: repo.fullName,
+                        description: repo.description,
+                        url: repo.url,
+                        homepage: repo.homepage,
+                        language: repo.language,
+                        stars: repo.stars,
+                        forks: repo.forks,
+                        isPrivate: repo.isPrivate,
+                        isFork: repo.isFork,
+                        topics: repo.topics || [],
+                        updatedAt: repo.updatedAt,
+                        lastPushedAt: repo.lastPushedAt,
+                    },
+                });
+            } catch (repoErr) {
+                console.warn(`Skipping repo upsert error for ${repo.name}:`, repoErr);
+            }
+        }
     }
 
     /**
@@ -181,8 +206,12 @@ export class GitHubSyncService {
                 level: this.determineSkillLevel(count),
             }));
 
-        if (newSkills.length > 0) {
-            await prisma.skill.createMany({ data: newSkills });
+        for (const skill of newSkills) {
+            try {
+                await prisma.skill.create({ data: skill });
+            } catch (skillErr) {
+                console.warn(`Skipping skill create error for ${skill.name}:`, skillErr);
+            }
         }
     }
 

@@ -143,6 +143,11 @@ export class GitHubAPI {
   }
 
   async getPinnedRepositories(username: string): Promise<GitHubRepository[]> {
+    // If no token is provided, skip GraphQL (which requires authentication) and use top starred repositories
+    if (!this.hasToken) {
+      return this.getTopRepositories(username, 6);
+    }
+
     const query = `
       query($username: String!) {
         user(login: $username) {
@@ -202,7 +207,6 @@ export class GitHubAPI {
         lastPushedAt: repo.pushedAt ? new Date(repo.pushedAt) : null,
       }));
     } catch (error) {
-      console.error("Error fetching pinned repositories:", error);
       // Fallback to top repositories if GraphQL fails or pinned not available
       return this.getTopRepositories(username, 6);
     }
