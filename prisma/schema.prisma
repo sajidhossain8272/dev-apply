@@ -158,6 +158,13 @@ model UserSettings {
   autoGithubSync   Boolean            @default(true)
   syncFrequency    String             @default("daily") // daily, weekly, manual
   theme            String             @default("dark")
+
+  // Custom Outgoing Email / SMTP Dispatch Settings (Per-User Isolation)
+  smtpHost         String?            @default("smtp.gmail.com")
+  smtpPort         Int?               @default(587)
+  smtpUser         String?
+  smtpPass         String?
+  smtpFromName     String?
 }
 
 model Account {

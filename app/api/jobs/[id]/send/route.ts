@@ -39,13 +39,14 @@ export async function POST(
     const subject = application.emailSubject || `Job Application for ${application.jobTitle || "Position"}`;
     const body = application.emailBody || "Please find my resume and cover letter attached.\n\nBest regards";
 
-    // Fetch user to check profile & identity
+    // Fetch user to check profile, custom SMTP settings & identity
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       include: {
         profile: {
           include: { experiences: true, projects: true, skills: true },
         },
+        settings: true,
       },
     });
 
@@ -149,7 +150,27 @@ export async function POST(
         accessToken: user?.gmailAccessToken,
         refreshToken: user?.gmailRefreshToken,
       },
+      userCustomSmtp: user?.settings?.smtpUser && user?.settings?.smtpPass
+        ? {
+            host: user.settings.smtpHost,
+            port: user.settings.smtpPort,
+            user: user.settings.smtpUser,
+            pass: user.settings.smtpPass,
+            fromName: user.settings.smtpFromName || user.name,
+          }
+        : null,
+      isSajid,
     });
+
+    if (!result.success && result.requiresSmtpSetup) {
+      return NextResponse.json(
+        {
+          error: result.error || "Please configure your own Email / SMTP settings in Settings before sending job applications.",
+          requiresSmtpSetup: true,
+        },
+        { status: 400 }
+      );
+    }
 
     // Update application status in DB to SENT
     const updated = await prisma.jobApplication.update({
@@ -167,7 +188,7 @@ export async function POST(
     return NextResponse.json({
       success: true,
       simulated: result.simulated,
-      requiresGoogleAuth: !!result.requiresGoogleAuth,
+      requiresGoogleAuth: !!(result as any).requiresGoogleAuth,
       method: result.method,
       application: updated,
     });

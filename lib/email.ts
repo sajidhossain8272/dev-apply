@@ -1,6 +1,14 @@
 // lib/email.ts
 import nodemailer from "nodemailer";
 
+export interface UserCustomSmtp {
+  host?: string | null;
+  port?: number | null;
+  user?: string | null;
+  pass?: string | null;
+  fromName?: string | null;
+}
+
 export async function sendApplicationEmail(params: {
   to: string;
   subject: string;
@@ -16,15 +24,50 @@ export async function sendApplicationEmail(params: {
     accessToken?: string | null;
     refreshToken?: string | null;
   };
+  userCustomSmtp?: UserCustomSmtp | null;
+  isSajid?: boolean;
 }) {
-  const { to, subject, body, attachments, userGmailCredentials } = params;
+  const { to, subject, body, attachments, userGmailCredentials, userCustomSmtp, isSajid } = params;
 
-  // 1. Direct Gmail REST API Dispatch (Using user's Google OAuth Access Token)
+  // 1. User's Own Custom SMTP Configuration (High Priority for all users)
+  if (userCustomSmtp?.user && userCustomSmtp?.pass) {
+    try {
+      const cleanUser = userCustomSmtp.user.trim();
+      const cleanPass = userCustomSmtp.pass.replace(/\s+/g, "");
+      const host = userCustomSmtp.host?.trim() || "smtp.gmail.com";
+      const port = Number(userCustomSmtp.port ?? 587);
+      const fromName = userCustomSmtp.fromName?.trim() || cleanUser.split("@")[0];
+
+      const transporter = nodemailer.createTransport({
+        host,
+        port,
+        secure: port === 465,
+        auth: {
+          user: cleanUser,
+          pass: cleanPass,
+        },
+      });
+
+      await transporter.sendMail({
+        from: `"${fromName}" <${cleanUser}>`,
+        to,
+        subject,
+        text: body,
+        attachments,
+      });
+
+      return { success: true, simulated: false, method: "user_smtp" };
+    } catch (err: any) {
+      console.error("User custom SMTP dispatch failed:", err?.message || err);
+      throw new Error(`Failed to send email via your custom SMTP settings: ${err?.message || "Authentication error"}`);
+    }
+  }
+
+  // 2. Direct Gmail REST API Dispatch (Using user's Google OAuth Access Token)
   if (userGmailCredentials?.accessToken) {
     try {
       const fromEmail = userGmailCredentials.email || "me";
 
-      // Compile raw RFC822 MIME message with attachments
       const streamTransporter = nodemailer.createTransport({
         streamTransport: true,
         newline: "windows",
@@ -60,78 +103,46 @@ export async function sendApplicationEmail(params: {
       const errText = await apiRes.text();
       console.warn("Gmail REST API dispatch returned non-ok:", apiRes.status, errText);
     } catch (err: any) {
-      console.error("Gmail REST API dispatch failed, trying fallbacks:", err?.message || err);
+      console.error("Gmail REST API dispatch failed:", err?.message || err);
     }
   }
 
-  // 2. Nodemailer Google OAuth2 Transport
-  if (
-    userGmailCredentials?.accessToken &&
-    process.env.GOOGLE_CLIENT_ID &&
-    process.env.GOOGLE_CLIENT_SECRET
-  ) {
-    try {
-      const fromEmail = userGmailCredentials.email || process.env.SMTP_USER || "me";
+  // 3. Fallback to System Environment Credentials (ONLY FOR SAJID HOSSAIN / ADMIN)
+  if (isSajid) {
+    const smtpUser = (process.env.SMTP_USER || process.env.GMAIL_USER || "").trim();
+    const smtpPass = (process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || "").replace(/\s+/g, "");
+    const smtpHost = process.env.SMTP_HOST || "smtp.gmail.com";
+    const smtpPort = Number(process.env.SMTP_PORT ?? 587);
+
+    if (smtpUser && smtpPass) {
       const transporter = nodemailer.createTransport({
-        service: "gmail",
+        host: smtpHost,
+        port: smtpPort,
+        secure: smtpPort === 465,
         auth: {
-          type: "OAuth2",
-          user: fromEmail,
-          clientId: process.env.GOOGLE_CLIENT_ID,
-          clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-          refreshToken: userGmailCredentials.refreshToken || undefined,
-          accessToken: userGmailCredentials.accessToken,
+          user: smtpUser,
+          pass: smtpPass,
         },
       });
 
       await transporter.sendMail({
-        from: fromEmail,
+        from: process.env.EMAIL_FROM || `"${process.env.EMAIL_FROM_NAME || 'Sajid Hossain'}" <${smtpUser}>`,
         to,
         subject,
         text: body,
         attachments,
       });
 
-      return { success: true, simulated: false, method: "google_oauth" };
-    } catch (err: any) {
-      console.error("Google OAuth2 transport failed, trying SMTP fallback:", err?.message || err);
+      return { success: true, simulated: false, method: "admin_env_smtp" };
     }
   }
 
-  // 3. Gmail / Custom SMTP Transport
-  const smtpUser = (process.env.SMTP_USER || process.env.GMAIL_USER || "").trim();
-  const smtpPass = (process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || "").replace(/\s+/g, "");
-  const smtpHost = process.env.SMTP_HOST || "smtp.gmail.com";
-  const smtpPort = Number(process.env.SMTP_PORT ?? 587);
-
-  if (smtpUser && smtpPass) {
-    const transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: smtpPort,
-      secure: smtpPort === 465,
-      auth: {
-        user: smtpUser,
-        pass: smtpPass,
-      },
-    });
-
-    await transporter.sendMail({
-      from: process.env.EMAIL_FROM || smtpUser,
-      to,
-      subject,
-      text: body,
-      attachments,
-    });
-
-    return { success: true, simulated: false, method: "smtp" };
-  }
-
-  // 4. Fallback: Simulation Mode
-  console.warn("No active Gmail OAuth or SMTP credentials found; simulating application email dispatch.");
-  console.log(
-    `[SIMULATED EMAIL] To: ${to}\nSubject: ${subject}\nBody:\n${body}\nAttachments: ${
-      attachments?.map((a) => a.filename).join(", ") || "None"
-    }`
-  );
-  return { success: true, simulated: true, method: "simulation", requiresGoogleAuth: true };
+  // 4. If non-admin user has not configured their own SMTP
+  return {
+    success: false,
+    simulated: true,
+    method: "requires_user_smtp",
+    requiresSmtpSetup: true,
+    error: "Please configure your own Email & SMTP settings in Settings to send job applications from your email address.",
+  };
 }
