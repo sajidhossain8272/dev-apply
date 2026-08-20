@@ -31,7 +31,10 @@ export default function JobApplicationDetailPage({
   const [coverLetterContent, setCoverLetterContent] = useState("");
   const [emailSubject, setEmailSubject] = useState("");
   const [emailBody, setEmailBody] = useState("");
-  const [optimizeResume, setOptimizeResume] = useState(false);
+  const [optimizeResume, setOptimizeResume] = useState(true);
+  const [customInstructions, setCustomInstructions] = useState("");
+  const [regeneratingResume, setRegeneratingResume] = useState(false);
+  const [regeneratingCover, setRegeneratingCover] = useState(false);
 
   // Q&A State
   const [qaQuestion, setQaQuestion] = useState("");
@@ -59,7 +62,8 @@ export default function JobApplicationDetailPage({
       setCoverLetterContent(a.coverLetter?.content || "");
       setEmailSubject(a.emailSubject || "");
       setEmailBody(a.emailBody || "");
-      setOptimizeResume(!!a.optimizeResume);
+      setOptimizeResume(a.optimizeResume !== false);
+      setCustomInstructions(a.customInstructions || "");
       setQaPairs(a.qaPairs || []);
     } catch (err: any) {
       setError(err.message || "Failed to load application");
@@ -94,6 +98,7 @@ export default function JobApplicationDetailPage({
           emailBody,
           coverLetterContent,
           optimizeResume,
+          customInstructions: customInstructions.trim() || null,
           ...extraFields,
         }),
       });
@@ -117,7 +122,23 @@ export default function JobApplicationDetailPage({
   };
 
   const handleRegenerateCoverLetter = async () => {
-    await handleSave({ regenerateCoverLetter: true });
+    try {
+      setRegeneratingCover(true);
+      await handleSave({ regenerateCoverLetter: true });
+      setSuccessMsg("Cover letter regenerated with your custom instructions!");
+    } finally {
+      setRegeneratingCover(false);
+    }
+  };
+
+  const handleRegenerateResume = async () => {
+    try {
+      setRegeneratingResume(true);
+      await handleSave({ regenerateResume: true, optimizeResume: true });
+      setSuccessMsg("Tailored Resume regenerated in Resume Studio architecture with your active repositories!");
+    } finally {
+      setRegeneratingResume(false);
+    }
   };
 
   const handleReviewCoverLetterPdf = async () => {
@@ -415,13 +436,206 @@ export default function JobApplicationDetailPage({
           )}
         </section>
 
+        {/* Custom User Instructions / Guidance Card */}
+        <section className="bg-neutral-900/60 border border-neutral-800 rounded-2xl p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+              <span className="text-emerald-400">⚡</span>
+              <span>Custom Tailoring Instructions & Focus (Optional)</span>
+            </h2>
+            <span className="text-xs text-neutral-500 font-mono">
+              Auto-integrated with Active Repositories
+            </span>
+          </div>
+
+          <p className="text-xs text-neutral-400">
+            Provide specific directions to guide the AI when tailoring your Resume and Cover Letter (e.g. emphasize specific tech stacks, freelance projects, or leadership accomplishments).
+          </p>
+
+          <textarea
+            rows={3}
+            value={customInstructions}
+            onChange={(e) => setCustomInstructions(e.target.value)}
+            placeholder="e.g. Focus heavily on Next.js 14, PostgreSQL and AI agent workflows; Emphasize my client delivery track record; Frame my skills for a Senior Full Stack Engineer role..."
+            className="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-3.5 text-xs text-neutral-200 focus:outline-none focus:border-emerald-500 font-sans leading-relaxed"
+          />
+
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+            <span className="text-[11px] text-neutral-500">
+              💡 Changes will be applied whenever you regenerate the resume or cover letter.
+            </span>
+
+            <div className="flex gap-2">
+              <button
+                onClick={handleRegenerateCoverLetter}
+                disabled={regeneratingCover || saving}
+                className="bg-neutral-800 hover:bg-neutral-700 disabled:opacity-50 text-xs font-bold px-3.5 py-2 rounded-xl text-neutral-200 transition-colors flex items-center gap-1.5"
+              >
+                {regeneratingCover ? "Regenerating Cover..." : "Regenerate Cover Letter"}
+              </button>
+
+              <button
+                onClick={handleRegenerateResume}
+                disabled={regeneratingResume || saving}
+                className="bg-emerald-400 hover:bg-emerald-300 disabled:opacity-50 text-black text-xs font-extrabold px-4 py-2 rounded-xl transition-all shadow-md flex items-center gap-1.5"
+              >
+                {regeneratingResume ? "Tailoring Resume..." : "Regenerate Tailored Resume"}
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Tailored Resume Studio Card */}
+        <section className="bg-neutral-900/60 border border-neutral-800 rounded-2xl p-6 space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <span>Tailored Resume (Resume Studio Architecture)</span>
+                <span className="text-xs font-mono font-bold bg-emerald-950/70 border border-emerald-800/60 text-emerald-400 px-2 py-0.5 rounded-md">
+                  Active Repos Enhanced
+                </span>
+              </h2>
+              <p className="text-xs text-neutral-400 mt-0.5">
+                Tailored dynamically using your active GitHub repositories, real projects, and job description requirements.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={() => {
+                  setPdfPreviewTitle("Tailored Resume PDF Preview");
+                  setPdfPreviewUrl(`/api/jobs/${applicationId}/pdf/resume?t=${Date.now()}`);
+                }}
+                className="bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-400 text-xs font-bold px-3.5 py-2 rounded-xl transition-colors flex items-center gap-1.5"
+              >
+                <span>Review Resume PDF</span>
+              </button>
+
+              <a
+                href={`/api/jobs/${applicationId}/pdf/resume?t=${Date.now()}`}
+                download="Tailored-Resume.pdf"
+                className="bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-bold px-3.5 py-2 rounded-xl transition-colors flex items-center gap-1.5"
+              >
+                <span>Download PDF</span>
+              </a>
+
+              <button
+                onClick={handleRegenerateResume}
+                disabled={regeneratingResume || saving}
+                className="bg-emerald-400 hover:bg-emerald-300 disabled:opacity-50 text-black text-xs font-extrabold px-4 py-2 rounded-xl transition-all shadow-md"
+              >
+                {regeneratingResume ? "Tailoring..." : "Re-tailor Resume"}
+              </button>
+            </div>
+          </div>
+
+          {/* Resume Studio Preview Content */}
+          {app.resumeVersion?.content ? (
+            <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-5 space-y-4 text-xs">
+              {app.resumeVersion.polishSummary && (
+                <div className="bg-neutral-900 border border-emerald-500/20 rounded-lg p-3 text-neutral-300 space-y-1">
+                  <span className="font-bold text-emerald-400 block text-[11px] uppercase tracking-wider">
+                    AI Tailoring & Optimization Notes:
+                  </span>
+                  <p className="leading-relaxed">{app.resumeVersion.polishSummary}</p>
+                  {app.resumeVersion.polishNotes && (
+                    <p className="text-neutral-400 text-[11px] pt-1 whitespace-pre-line">{app.resumeVersion.polishNotes}</p>
+                  )}
+                </div>
+              )}
+
+              <div className="space-y-1 border-b border-neutral-800 pb-3">
+                <h3 className="text-base font-extrabold text-white">
+                  {app.resumeVersion.content.name || "Candidate"}
+                </h3>
+                <p className="text-emerald-400 font-semibold">
+                  {app.resumeVersion.content.headline}
+                </p>
+                {app.resumeVersion.content.summary && (
+                  <p className="text-neutral-300 leading-relaxed pt-1">
+                    {app.resumeVersion.content.summary}
+                  </p>
+                )}
+              </div>
+
+              {/* Skills */}
+              {app.resumeVersion.content.skills && app.resumeVersion.content.skills.length > 0 && (
+                <div className="space-y-2 border-b border-neutral-800 pb-3">
+                  <span className="font-bold text-neutral-400 uppercase tracking-wider text-[11px]">
+                    Technical Skills Categorized:
+                  </span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {app.resumeVersion.content.skills.map((cat: any, cIdx: number) => (
+                      <div key={cIdx} className="bg-neutral-900/80 p-2.5 rounded-lg border border-neutral-800">
+                        <span className="font-bold text-neutral-200 block text-[11px]">{cat.category || "Skills"}:</span>
+                        <span className="text-neutral-400 text-[11px]">
+                          {Array.isArray(cat.items) ? cat.items.join(" • ") : cat.items || cat.name}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Showcased Projects & Active Repositories */}
+              {app.resumeVersion.content.projects && app.resumeVersion.content.projects.length > 0 && (
+                <div className="space-y-2 border-b border-neutral-800 pb-3">
+                  <span className="font-bold text-neutral-400 uppercase tracking-wider text-[11px]">
+                    Showcased Active Projects & Repositories:
+                  </span>
+                  <div className="grid gap-2">
+                    {app.resumeVersion.content.projects.map((proj: any, pIdx: number) => (
+                      <div key={pIdx} className="bg-neutral-900/60 p-3 rounded-lg border border-neutral-800 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-white text-xs">{proj.name}</span>
+                          {proj.repoUrl && (
+                            <a
+                              href={proj.repoUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-[11px] text-emerald-400 hover:underline font-mono"
+                            >
+                              GitHub ↗
+                            </a>
+                          )}
+                        </div>
+                        {proj.techStack && (
+                          <span className="text-[11px] text-emerald-300 font-mono block">Tech: {proj.techStack}</span>
+                        )}
+                        {proj.bullets && Array.isArray(proj.bullets) && (
+                          <ul className="list-disc list-inside text-neutral-300 text-[11px] space-y-0.5 pt-0.5">
+                            {proj.bullets.map((b: string, bIdx: number) => (
+                              <li key={bIdx}>{b}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="p-6 rounded-xl bg-neutral-950 border border-neutral-800 text-center space-y-2 text-xs">
+              <p className="text-neutral-400">No tailored resume version generated yet.</p>
+              <button
+                onClick={handleRegenerateResume}
+                disabled={regeneratingResume}
+                className="bg-emerald-400 text-black font-extrabold text-xs px-4 py-2 rounded-xl hover:bg-emerald-300"
+              >
+                Generate Tailored Resume Studio Version Now
+              </button>
+            </div>
+          )}
+        </section>
+
         {/* Humanly Written Cover Letter Section */}
         <section className="bg-neutral-900/60 border border-neutral-800 rounded-2xl p-6 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h2 className="text-lg font-bold text-white">ATS Humanly Written Cover Letter</h2>
               <p className="text-xs text-neutral-400">
-                Tailored for {company || "the company"} using your resume and key qualifications. Manually editable below.
+                Tailored for {company || "the company"} using your resume, active repositories, and custom instructions.
               </p>
             </div>
 
@@ -444,10 +658,10 @@ export default function JobApplicationDetailPage({
 
               <button
                 onClick={handleRegenerateCoverLetter}
-                disabled={saving}
+                disabled={regeneratingCover || saving}
                 className="bg-neutral-800 hover:bg-neutral-700 text-xs font-bold px-3.5 py-2 rounded-lg text-neutral-200 transition-colors flex items-center gap-1.5"
               >
-                <span>Regenerate with AI</span>
+                <span>{regeneratingCover ? "Regenerating..." : "Regenerate with AI"}</span>
               </button>
 
               <button
@@ -467,65 +681,6 @@ export default function JobApplicationDetailPage({
             placeholder="Edit your cover letter manually..."
             className="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-4 text-sm text-neutral-200 leading-relaxed focus:outline-none focus:border-emerald-500 font-sans"
           />
-        </section>
-
-        {/* Resume Option & Optimization Toggle */}
-        <section className="bg-neutral-900/60 border border-neutral-800 rounded-2xl p-6 space-y-4">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <h2 className="text-lg font-bold text-white">Resume Attachment Selection</h2>
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => {
-                  setPdfPreviewTitle("Resume PDF Review");
-                  setPdfPreviewUrl(`/api/jobs/${applicationId}/pdf/resume`);
-                }}
-                className="bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-400 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
-              >
-                <span>Review Resume PDF</span>
-              </button>
-
-              <label className="flex items-center gap-3 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={optimizeResume}
-                  onChange={(e) => {
-                    setOptimizeResume(e.target.checked);
-                    handleSave({ optimizeResume: e.target.checked });
-                  }}
-                  className="w-4 h-4 rounded border-neutral-700 text-emerald-500 focus:ring-emerald-500 bg-neutral-900"
-                />
-                <span className="text-xs text-neutral-300">
-                  Optimize Resume Keywords for this Job
-                </span>
-              </label>
-            </div>
-          </div>
-
-          <div className="p-4 rounded-xl bg-neutral-950 border border-neutral-800 text-xs space-y-2">
-            <div className="flex items-center justify-between text-neutral-300 flex-wrap gap-2">
-              <span className="font-bold">Attached Resume File:</span>
-              <button
-                onClick={() => {
-                  setPdfPreviewTitle("Resume PDF Review");
-                  setPdfPreviewUrl(`/api/jobs/${applicationId}/pdf/resume`);
-                }}
-                className="font-mono text-emerald-400 hover:underline flex items-center gap-1"
-              >
-                <span></span>
-                <span>
-                  {optimizeResume
-                    ? "Tailored-Optimized-Resume.pdf"
-                    : "Sajid-Hossain-Resume.pdf / Dynamic-Profile-Resume.pdf"}
-                </span>
-              </button>
-            </div>
-            {app.resumeVersion && optimizeResume && (
-              <div className="text-neutral-400 border-t border-neutral-800 pt-2 space-y-1">
-                <p className="font-semibold text-neutral-300">AI Optimization Summary:</p>
-                <p>{app.resumeVersion.polishSummary}</p>
-              </div>
-            )}
-          </div>
         </section>
 
         {/* AI Screening Q&A Engine */}

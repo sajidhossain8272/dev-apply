@@ -73,43 +73,59 @@ export async function PUT(
       emailBody,
       coverLetterContent,
       optimizeResume,
+      customInstructions,
       regenerateCoverLetter,
+      regenerateResume,
       status,
     } = json;
 
-    // Default resume context
-    const defaultResume = await prisma.resume.findFirst({
-      where: { userId: session.user.id },
-      orderBy: { updatedAt: "desc" },
-    });
-    const resumeContent = defaultResume?.content || {};
+    const cleanCustomInstructions =
+      customInstructions !== undefined
+        ? customInstructions?.trim() || null
+        : existing.customInstructions;
+
+    // Load comprehensive candidate profile & real repositories
+    const { getCandidateComprehensiveData } = await import("@/lib/candidate-profile");
+    const { baseResume, repositories } = await getCandidateComprehensiveData(session.user.id);
 
     let updatedCoverLetterContent = coverLetterContent;
     if (regenerateCoverLetter) {
       updatedCoverLetterContent = await generateCoverLetterForJob({
-        resumeContent,
+        resumeContent: baseResume,
         jobDescription: existing.jdText,
         jobTitle: jobTitle || existing.jobTitle || undefined,
         company: company || existing.company || undefined,
+        customInstructions: cleanCustomInstructions || undefined,
+        activeRepositories: repositories,
         matchReasons: existing.matchReasons as any[],
       });
     }
 
-    // Check if optimizeResume option was toggled on and no resumeVersion exists yet
+    // Check if resume should be polished / regenerated with custom instructions
     let resumeVersionData: any = undefined;
-    if (optimizeResume && !existing.resumeVersion) {
+    if (regenerateResume || (optimizeResume && !existing.resumeVersion)) {
       const polished = await polishResumeForJob({
-        resumeContent,
+        resumeContent: baseResume,
         jobDescription: existing.jdText,
         matchReasons: existing.matchReasons as any[],
         jobTitle: jobTitle || existing.jobTitle || undefined,
         company: company || existing.company || undefined,
+        customInstructions: cleanCustomInstructions || undefined,
+        activeRepositories: repositories,
       });
+
       resumeVersionData = {
-        create: {
-          content: polished.content,
-          polishNotes: polished.polishNotes,
-          polishSummary: polished.polishSummary,
+        upsert: {
+          create: {
+            content: polished.content,
+            polishNotes: polished.polishNotes,
+            polishSummary: polished.polishSummary,
+          },
+          update: {
+            content: polished.content,
+            polishNotes: polished.polishNotes,
+            polishSummary: polished.polishSummary,
+          },
         },
       };
     }
@@ -124,6 +140,7 @@ export async function PUT(
         ...(emailSubject !== undefined && { emailSubject }),
         ...(emailBody !== undefined && { emailBody }),
         ...(optimizeResume !== undefined && { optimizeResume: !!optimizeResume }),
+        ...(customInstructions !== undefined && { customInstructions: cleanCustomInstructions }),
         ...(status !== undefined && { status }),
         ...(updatedCoverLetterContent !== undefined && {
           coverLetter: {

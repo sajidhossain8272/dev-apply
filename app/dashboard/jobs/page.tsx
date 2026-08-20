@@ -15,7 +15,9 @@ export default function JobApplicationsPage() {
 
   // New Application Form State
   const [jdText, setJdText] = useState("");
-  const [optimizeResume, setOptimizeResume] = useState(false);
+  const [customInstructions, setCustomInstructions] = useState("");
+  const [showCustomPrompt, setShowCustomPrompt] = useState(false);
+  const [optimizeResume, setOptimizeResume] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
 
@@ -53,7 +55,11 @@ export default function JobApplicationsPage() {
       const res = await fetch("/api/jobs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jdText, optimizeResume }),
+        body: JSON.stringify({
+          jdText,
+          optimizeResume,
+          customInstructions: customInstructions.trim() || undefined,
+        }),
       });
 
       if (!res.ok) {
@@ -63,7 +69,7 @@ export default function JobApplicationsPage() {
 
       const data = await res.json();
       setJdText("");
-      setOptimizeResume(false);
+      setCustomInstructions("");
       // Reload applications list
       await loadApplications();
       // Redirect or highlight
@@ -165,6 +171,29 @@ Apply: career@penough.com..."
               required
             />
 
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => setShowCustomPrompt(!showCustomPrompt)}
+                  className="text-xs font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1.5 transition-colors"
+                >
+                  <span>{showCustomPrompt ? "▼ Hide Custom Tailoring Instructions" : "▶ Add Custom Instructions & Focus (Optional)"}</span>
+                </button>
+                <span className="text-[11px] text-neutral-500">Grounded in your real GitHub repos & experience</span>
+              </div>
+
+              {showCustomPrompt && (
+                <textarea
+                  rows={3}
+                  value={customInstructions}
+                  onChange={(e) => setCustomInstructions(e.target.value)}
+                  placeholder="e.g. Focus heavily on Next.js 14 and PostgreSQL; Highlight my AI agent workflows and automation systems; Emphasize my freelance client delivery track record..."
+                  className="w-full bg-neutral-900/90 border border-emerald-500/30 rounded-xl p-3 text-xs text-neutral-200 focus:outline-none focus:border-emerald-500 font-sans"
+                />
+              )}
+            </div>
+
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
               <label className="flex items-center gap-3 cursor-pointer group select-none">
                 <input
@@ -173,20 +202,20 @@ Apply: career@penough.com..."
                   onChange={(e) => setOptimizeResume(e.target.checked)}
                   className="w-4 h-4 rounded border-neutral-700 text-emerald-500 focus:ring-emerald-500 bg-neutral-900"
                 />
-                <span className="text-xs text-neutral-300 group-hover:text-white transition-colors">
-                  Optimize Resume for this JD (AI Keyword & Skill Tailoring)
+                <span className="text-xs text-neutral-300 group-hover:text-white transition-colors font-medium">
+                  Generate Tailored Resume (Resume Studio Architecture + Active Repos)
                 </span>
               </label>
 
               <button
                 type="submit"
                 disabled={submitting || !jdText.trim()}
-                className="bg-emerald-400 hover:bg-emerald-300 disabled:opacity-50 text-black font-bold px-6 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 text-sm shadow-lg shadow-emerald-500/10"
+                className="bg-emerald-400 hover:bg-emerald-300 disabled:opacity-50 text-black font-extrabold px-6 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 text-sm shadow-lg shadow-emerald-500/10"
               >
                 {submitting ? (
                   <>
                     <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-black"></span>
-                    <span>Analyzing & Preparing...</span>
+                    <span>Analyzing & Tailoring...</span>
                   </>
                 ) : (
                   <>

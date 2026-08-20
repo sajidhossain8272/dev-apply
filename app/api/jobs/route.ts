@@ -38,6 +38,8 @@ export async function GET() {
   }
 }
 
+import { getCandidateComprehensiveData } from "@/lib/candidate-profile";
+
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
 
@@ -47,7 +49,7 @@ export async function POST(request: Request) {
 
   try {
     const json = await request.json();
-    const { jdText, optimizeResume } = json;
+    const { jdText, optimizeResume, customInstructions } = json;
 
     if (!jdText || typeof jdText !== "string" || !jdText.trim()) {
       return NextResponse.json(
@@ -56,78 +58,58 @@ export async function POST(request: Request) {
       );
     }
 
-    // 1. Fetch user's default resume or primary profile
-    const defaultResume = await prisma.resume.findFirst({
-      where: { userId: session.user.id },
-      orderBy: { updatedAt: "desc" },
-    });
+    const cleanCustomInstructions = customInstructions?.trim() || undefined;
 
-    let resumeContent: any = defaultResume?.content;
-    if (!resumeContent) {
-      // Fallback resume content if user hasn't created a resume in DB yet
-      resumeContent = {
-        name: session.user.name || "Sajid Hossain",
-        headline: "Senior Full Stack Developer",
-        contact: {
-          email: session.user.email || "sajidhossain8272@gmail.com",
-          github: "https://github.com/sajidhossain8272",
-        },
-        skills: [
-          { category: "Frontend", items: ["React.js", "Next.js", "TypeScript", "TailwindCSS"] },
-          { category: "Backend", items: ["Node.js", "Django", "Python", "PostgreSQL", "REST APIs"] },
-        ],
-        experiences: [
-          {
-            company: "Full Stack Engineer",
-            title: "Senior Full Stack Developer",
-            startDate: "2022-01-01",
-            isCurrent: true,
-            bullets: ["Developed scalable web applications using React, Next.js, and Node.js/Django."],
-          },
-        ],
-      };
-    }
+    // 1. Fetch comprehensive candidate data (Profile, Active Repositories, Skills, Resume Studio Base Resume)
+    const { candidateName, baseResume, repositories } =
+      await getCandidateComprehensiveData(session.user.id);
 
     // 2. Extract job details and recipient email from raw JD text
     const extracted = await extractJobDetails(jdText);
     const { jobTitle, company, location, recipientEmail } = extracted;
 
-    // 3. Calculate ATS match score
+    // 3. Calculate ATS match score with active repo context & custom instructions
     const match = await calculateMatchScore({
-      resumeContent,
+      resumeContent: baseResume,
       jobDescription: jdText,
       jobTitle,
       company,
+      customInstructions: cleanCustomInstructions,
+      activeRepositories: repositories,
     });
 
-    // 4. Generate ATS cover letter
+    // 4. Generate ATS cover letter with real repositories & custom instructions
     const coverLetterText = await generateCoverLetterForJob({
-      resumeContent,
+      resumeContent: baseResume,
       jobDescription: jdText,
       jobTitle,
       company,
+      customInstructions: cleanCustomInstructions,
+      activeRepositories: repositories,
       matchReasons: match.reasons,
     });
 
     // 5. Generate application email
     const emailDraft = await generateApplicationEmail({
-      resumeContent,
+      resumeContent: baseResume,
       jobDescription: jdText,
       jobTitle,
       company,
-      candidateName: (resumeContent as any)?.name || session.user.name || "Sajid Hossain",
+      candidateName,
       recipientEmail,
     });
 
-    // 6. If optimizeResume requested, polish resume version
+    // 6. Polish resume version with Resume Studio architecture, active repos, and custom instructions
     let resumeVersionData: any = null;
     if (optimizeResume) {
       const polished = await polishResumeForJob({
-        resumeContent,
+        resumeContent: baseResume,
         jobDescription: jdText,
         matchReasons: match.reasons,
         jobTitle,
         company,
+        customInstructions: cleanCustomInstructions,
+        activeRepositories: repositories,
       });
       resumeVersionData = {
         content: polished.content,
@@ -152,6 +134,7 @@ export async function POST(request: Request) {
         emailSubject: emailDraft.subject,
         emailBody: emailDraft.body,
         optimizeResume: !!optimizeResume,
+        customInstructions: cleanCustomInstructions || null,
         status: "READY",
         coverLetter: {
           create: {

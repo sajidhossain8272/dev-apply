@@ -316,8 +316,9 @@ model JobApplication {
   sentAt         DateTime?
 
   // Application Options & Q&A
-  optimizeResume Boolean              @default(false)
-  qaPairs        Json?                // Array of { id, question, answer, createdAt }
+  optimizeResume      Boolean              @default(false)
+  customInstructions  String?              // Optional custom user requirements & prompt instructions
+  qaPairs             Json?                // Array of { id, question, answer, createdAt }
 
   status      JobApplicationStatus @default(DRAFT)
 
