@@ -1,11 +1,9 @@
 import type { NextAuthOptions } from "next-auth";
 import GithubProvider from "next-auth/providers/github";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "./prisma";
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 Days persistent session
@@ -155,7 +153,32 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
-    async signIn() {
+    async signIn({ user, profile }) {
+      try {
+        const email = user.email?.toLowerCase() || `${(profile as any)?.login || "github-user"}@users.noreply.github.com`;
+        const handle = (profile as any)?.login || (user as any).handle || undefined;
+        const dbUser = await prisma.user.upsert({
+          where: { email },
+          create: {
+            email,
+            name: user.name || handle || "Developer",
+            image: user.image,
+            handle,
+            emailVerified: new Date(),
+            profile: { create: { isPublic: true } },
+          },
+          update: {
+            name: user.name || undefined,
+            image: user.image || undefined,
+            handle: handle || undefined,
+            emailVerified: new Date(),
+          },
+        });
+        user.id = dbUser.id;
+      } catch (error) {
+        console.error("Failed to persist OAuth user:", error);
+        return false;
+      }
       return true;
     },
   },
